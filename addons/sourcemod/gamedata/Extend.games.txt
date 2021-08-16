@@ -1,0 +1,25 @@
+"Games"
+{
+	"#default"
+	{
+		"Addresses"
+		{
+			"GameOver"
+			{
+				"linux"
+				{
+					"signature"	"g_fGameOver"
+				}
+			}
+		}
+
+		"Signatures"
+		{
+			"g_fGameOver"
+			{
+				"library"	"server"
+				"linux"		"@g_fGameOver"
+			}
+		}
+	}
+}
