@@ -8,7 +8,7 @@
 #define VOTE_NO "###no###"
 #define VOTE_YES "###yes###"
 
-static int numAttempts = 0;
+int numAttempts = 0;
 
 ConVar g_cvarExtendVoteTime = null;
 ConVar g_cvarExtendVotePercent = null;
@@ -393,8 +393,7 @@ public int Handler_VoteCallback(Menu menu, MenuAction action, int param1, int pa
 			LogAction(-1, -1, "Extend %t", "Vote Failed", RoundToNearest(100.0 * limit), RoundToNearest(100.0 * percent), totalVotes);
 			PrintToServer("[SM] %t", "Vote Failed", RoundToNearest(100.0 * limit), RoundToNearest(100.0 * percent), totalVotes);
 			CPrintToChatAll("{green}[SM]{default} %t", "Vote Failed", RoundToNearest(100.0 * limit), RoundToNearest(100.0 * percent), totalVotes);
-			if (g_cvarExtendVoteMaxFailedAttempt.IntValue != -1)
-				numAttempts++;
+			numAttempts++;
 		}
 		else
 		{
