@@ -8,8 +8,12 @@
 #define VOTE_NO "###no###"
 #define VOTE_YES "###yes###"
 
+int numAttempts = 0;
+
 ConVar g_cvarExtendVoteTime = null;
 ConVar g_cvarExtendVotePercent = null;
+ConVar g_cvarExtendVoteMaxFailedAttempt = null;
+ConVar g_cvarExtendVote = null;
 ConVar g_cvarMpMaxRounds = null;
 ConVar g_cvarMpFragLimit = null;
 ConVar g_cvarMpWinLimit = null;
@@ -23,7 +27,7 @@ public Plugin myinfo =
     name        = "Map extend tools",
     author      = "Obus + BotoX + .Rushaway",
     description = "Adds map extension commands.",
-    version     = "1.1.1",
+    version     = "1.2",
     url         = ""
 };
 
@@ -37,8 +41,10 @@ public void OnPluginStart()
 	g_cvarMpWinLimit = FindConVar("mp_winlimit");
 	g_cvarMpTimeLimit = FindConVar("mp_timelimit");
 
+	g_cvarExtendVote = CreateConVar("sm_extendvote_enabled", "1", "Enable Extend Vote? [1 = Enable | 0 = Disable]", FCVAR_NONE, true, 0.0, true, 1.0);
 	g_cvarExtendVoteTime = CreateConVar("sm_extendvote_time", "15", "Time that will be added to mp_timelimit shall the extend vote succeed", FCVAR_NONE, true, 1.0);
 	g_cvarExtendVotePercent = CreateConVar("sm_extendvote_percent", "0.6", "Percentage of \"yes\" votes required to consider the vote successful", FCVAR_NONE, true, 0.05, true, 1.0);
+	g_cvarExtendVoteMaxFailedAttempt = CreateConVar("sm_extendvote_maxfailed", "0", "Maximum Extend vote failed before locking the Extend vote command \n0 = Disable this function", FCVAR_NONE, true, 0.0);
 
 	AutoExecConfig(true);
 
@@ -87,14 +93,16 @@ public void OnPluginStart()
 	g_bGameOver = true;
 }
 
+public void OnMapEnd()
+{
+	numAttempts = 0;
+}
+
 public Action Command_Extend_Rounds(int client, int argc)
 {
 	if (argc < 1)
 	{
-		if (client == 0)
-			ReplyToCommand(client, "[SM] Usage: sm_extend_rounds <rounds>");
-		else
-			CReplyToCommand(client, "{green}[SM] {default}Usage: sm_extend_rounds {olive}<rounds>");
+		CReplyToCommand(client, "{green}[SM] {default}Usage: sm_extend_rounds {olive}<rounds>");
 		return Plugin_Handled;
 	}
 
@@ -108,10 +116,7 @@ public Action Command_Extend_Rounds(int client, int argc)
 
 		if (!StringToIntEx(sArgs[1], iRoundsToDeduct))
 		{
-			if (client == 0)
-				ReplyToCommand(client, "[SM] Invalid value.");
-			else
-				CReplyToCommand(client, "{green}[SM] {default}Invalid value.");
+			CReplyToCommand(client, "{green}[SM] {default}Invalid value.");
 			return Plugin_Handled;
 		}
 
@@ -126,10 +131,7 @@ public Action Command_Extend_Rounds(int client, int argc)
 
 	if (!StringToIntEx(sArgs, iRoundsToAdd))
 	{
-		if (client == 0)
-			ReplyToCommand(client, "[SM] Invalid value.");
-		else
-			CReplyToCommand(client, "{green}[SM] {default}Invalid value.");
+		CReplyToCommand(client, "{green}[SM] {default}Invalid value.");
 		return Plugin_Handled;
 	}
 
@@ -145,10 +147,7 @@ public Action Command_Extend_Frags(int client, int argc)
 {
 	if (argc < 1)
 	{
-		if (client == 0)
-			ReplyToCommand(client, "[SM] Usage: sm_extend_frags <frags>");
-		else
-			CReplyToCommand(client, "{green}[SM] {default}Usage: sm_extend_frags {olive}<frags>");
+		CReplyToCommand(client, "{green}[SM] {default}Usage: sm_extend_frags {olive}<frags>");
 		return Plugin_Handled;
 	}
 
@@ -162,10 +161,7 @@ public Action Command_Extend_Frags(int client, int argc)
 
 		if (!StringToIntEx(sArgs[1], iFragsToDeduct))
 		{
-			if (client == 0)
-				ReplyToCommand(client, "[SM] Invalid value.");
-			else
-				CReplyToCommand(client, "{green}[SM] {default}Invalid value.");
+			CReplyToCommand(client, "{green}[SM] {default}Invalid value.");
 			return Plugin_Handled;
 		}
 
@@ -180,10 +176,7 @@ public Action Command_Extend_Frags(int client, int argc)
 
 	if (!StringToIntEx(sArgs, iFragsToAdd))
 	{
-		if (client == 0)
-			ReplyToCommand(client, "[SM] Invalid value.");
-		else
-			CReplyToCommand(client, "{green}[SM] {default}Invalid value.");
+		CReplyToCommand(client, "{green}[SM] {default}Invalid value.");
 		return Plugin_Handled;
 	}
 
@@ -199,10 +192,7 @@ public Action Command_Extend_Wins(int client, int argc)
 {
 	if (argc < 1)
 	{
-		if (client == 0)
-			ReplyToCommand(client, "[SM] Usage: sm_extend_wins <wins>");
-		else
-			CReplyToCommand(client, "{green}[SM] {default}Usage: sm_extend_wins {olive}<wins>");
+		CReplyToCommand(client, "{green}[SM] {default}Usage: sm_extend_wins {olive}<wins>");
 		return Plugin_Handled;
 	}
 
@@ -216,10 +206,7 @@ public Action Command_Extend_Wins(int client, int argc)
 
 		if (!StringToIntEx(sArgs[1], iWinsToDeduct))
 		{
-			if (client == 0)
-				ReplyToCommand(client, "[SM] Invalid value.");
-			else
-				CReplyToCommand(client, "{green}[SM] {default}Invalid value.");
+			CReplyToCommand(client, "{green}[SM] {default}Invalid value.");
 			return Plugin_Handled;
 		}
 
@@ -234,10 +221,7 @@ public Action Command_Extend_Wins(int client, int argc)
 
 	if (!StringToIntEx(sArgs, iWinsToAdd))
 	{
-		if (client == 0)
-			ReplyToCommand(client, "[SM] Invalid value.");
-		else
-			CReplyToCommand(client, "{green}[SM] {default}Invalid value.");
+		CReplyToCommand(client, "{green}[SM] {default}Invalid value.");
 		return Plugin_Handled;
 	}
 
@@ -253,10 +237,7 @@ public Action Command_Extend(int client, int argc)
 {
 	if (argc < 1)
 	{
-		if (client == 0)
-			ReplyToCommand(client, "[SM] Usage: sm_extend <time>");
-		else
-			CReplyToCommand(client, "{green}[SM] {default}Usage: sm_extend {olive}<time>");
+		CReplyToCommand(client, "{green}[SM] {default}Usage: sm_extend {olive}<time>");
 		return Plugin_Handled;
 	}
 
@@ -272,10 +253,7 @@ public Action Command_Extend(int client, int argc)
 
 		if (!StringToIntEx(sArgs[1], iMinutesToDeduct))
 		{
-			if (client == 0)
-				ReplyToCommand(client, "[SM] Invalid value.");
-			else
-				CReplyToCommand(client, "{green}[SM] {default}Invalid value.");
+			CReplyToCommand(client, "{green}[SM] {default}Invalid value.");
 			return Plugin_Handled;
 		}
 
@@ -294,10 +272,7 @@ public Action Command_Extend(int client, int argc)
 
 	if (!StringToIntEx(sArgs, iMinutesToAdd))
 	{
-		if (client == 0)
-			ReplyToCommand(client, "[SM] Invalid value.");
-		else
-			CReplyToCommand(client, "{green}[SM] {default}Invalid value.");
+		CReplyToCommand(client, "{green}[SM] {default}Invalid value.");
 		return Plugin_Handled;
 	}
 
@@ -315,16 +290,25 @@ public Action Command_ExtendVote(int client, int argc)
 	int TimeLeft;
 	char sMinutes[5], sSeconds[5];
 
+	if (g_cvarExtendVote.IntValue != 1)
+	{
+		CReplyToCommand(client, "{green}[SM] {default}This feature is currently disabled by the server host.");
+		return Plugin_Handled;
+	}
+	if (g_cvarExtendVoteMaxFailedAttempt.IntValue > 0 && numAttempts >= g_cvarExtendVoteMaxFailedAttempt.IntValue)
+	{
+		CReplyToCommand(client, "{green}[SM] {default}Vote already failed %d times. Can't do more extend vote.", numAttempts);
+		LogAction(-1, -1, "%L Attempting to start another extend vote after %d vote failed.. Clamped!", client, numAttempts);
+		return Plugin_Handled;
+	}
+
 	GetMapTimeLeft(TimeLeft);
 	FormatEx(sMinutes, sizeof(sMinutes), "%s%i", ((TimeLeft / 60) < 10) ? "0" : "", TimeLeft / 60);
 	FormatEx(sSeconds, sizeof(sSeconds), "%s%i", ((TimeLeft % 60) < 10) ? "0" : "", TimeLeft % 60);
 
 	if (IsVoteInProgress())
 	{
-		if (client == 0)
-			ReplyToCommand(client, "[SM] %t", "Vote in Progress");
-		else
-			CReplyToCommand(client, "{green}[SM] {default}%t", "Vote in Progress");
+		CReplyToCommand(client, "{green}[SM] {default}%t", "Vote in Progress");
 		return Plugin_Handled;
 	}
 
@@ -350,29 +334,13 @@ public Action Command_ExtendVote(int client, int argc)
 
 	if(TimeLeft >= 0) 
 	{
-		if (client == 0)
-		{
-			ShowActivity2(client, "[SM] ", "Initiated an extend vote.");
-			LogAction(-1, -1, "The Server: Initiated an extend vote. (%d minutes)\nTimeLeft: %s:%s", g_ExtendTime, sMinutes, sSeconds);
-		}
-		else
-		{
-			CShowActivity2(client, "{green}[SM]{olive} ", "{default}Initiated an extend vote.");
-			LogAction(client, -1, "\"%L\" Initiated an extend vote. (%d minutes)\nTimeLeft: %s:%s", client, g_ExtendTime, sMinutes, sSeconds);
-		}
+		CShowActivity2(client, "{green}[SM]{olive} ", "{default}Initiated an extend vote.");
+		LogAction(client, -1, "\"%L\" Initiated an extend vote. (%d minutes)\nTimeLeft: %s:%s", client, g_ExtendTime, sMinutes, sSeconds);
 	}
 	else if(TimeLeft < 0) 
 	{
-		if (client == 0)
-		{
-			ShowActivity2(client, "[SM] ", "Initiated an extend vote.");
-			LogAction(client, -1, "The Server: Initiated an extend vote. (%d minutes)\nTimeLeft: 0:00 (This is the last round!)", g_ExtendTime);
-		}
-		else
-		{
-			CShowActivity2(client, "{green}[SM]{olive} ", "{default}Initiated an extend vote.");
-			LogAction(client, -1, "\"%L\" Initiated an extend vote. (%d minutes)\nTimeLeft: 0:00 (This is the last round!)", client, g_ExtendTime);
-		}
+		CShowActivity2(client, "{green}[SM]{olive} ", "{default}Initiated an extend vote.");
+		LogAction(client, -1, "\"%L\" Initiated an extend vote. (%d minutes)\nTimeLeft: 0:00 (This is the last round!)", client, g_ExtendTime);
 	}
 
 	return Plugin_Handled;
@@ -425,6 +393,7 @@ public int Handler_VoteCallback(Menu menu, MenuAction action, int param1, int pa
 			LogAction(-1, -1, "Extend %t", "Vote Failed", RoundToNearest(100.0 * limit), RoundToNearest(100.0 * percent), totalVotes);
 			PrintToServer("[SM] %t", "Vote Failed", RoundToNearest(100.0 * limit), RoundToNearest(100.0 * percent), totalVotes);
 			CPrintToChatAll("{green}[SM]{default} %t", "Vote Failed", RoundToNearest(100.0 * limit), RoundToNearest(100.0 * percent), totalVotes);
+			numAttempts++;
 		}
 		else
 		{
@@ -446,6 +415,7 @@ public int Handler_VoteCallback(Menu menu, MenuAction action, int param1, int pa
 			LogAction(-1, -1, "Extend %t \nExtending current map by \"%d\" minutes.\nNew TimeLeft: %s:%s","Vote Successful", RoundToNearest(100.0 * percent), totalVotes, g_ExtendTime, sMinutes, sSeconds);
 			PrintToServer("[SM] %t", "Vote Successful", RoundToNearest(100.0 * percent), totalVotes);
 			CPrintToChatAll("{green}[SM]{default} %t", "Vote Successful", RoundToNearest(100.0 * percent), totalVotes);
+			numAttempts = 0;
 		}
 	}
 
