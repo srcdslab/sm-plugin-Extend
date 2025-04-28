@@ -5,6 +5,10 @@
 #include <sdktools>
 #include <multicolors>
 
+#undef REQUIRE_PLUGIN
+#tryinclude <mapchooser_extended>
+#define REQUIRE_PLUGIN
+
 #define VOTE_NO "###no###"
 #define VOTE_YES "###yes###"
 
@@ -18,6 +22,7 @@ ConVar g_cvarMpMaxRounds = null;
 ConVar g_cvarMpFragLimit = null;
 ConVar g_cvarMpWinLimit = null;
 ConVar g_cvarMpTimeLimit = null;
+ConVar g_cvarRequireAllExtends = null;
 
 bool g_bGameOver = false;
 Address g_pGameOver;
@@ -27,7 +32,7 @@ public Plugin myinfo =
 	name        = "Map extend tools",
 	author      = "Obus + BotoX + .Rushaway",
 	description = "Adds map extension commands.",
-	version     = "1.3",
+	version     = "1.3.1",
 	url         = ""
 };
 
@@ -45,6 +50,7 @@ public void OnPluginStart()
 	g_cvarExtendVoteTime = CreateConVar("sm_extendvote_time", "15", "Time that will be added to mp_timelimit shall the extend vote succeed", FCVAR_NONE, true, 1.0);
 	g_cvarExtendVotePercent = CreateConVar("sm_extendvote_percent", "0.6", "Percentage of \"yes\" votes required to consider the vote successful", FCVAR_NONE, true, 0.05, true, 1.0);
 	g_cvarExtendVoteMaxFailedAttempt = CreateConVar("sm_extendvote_maxfailed", "0", "Maximum Extend vote failed before locking the Extend vote command \n0 = Disable this function", FCVAR_NONE, true, 0.0);
+	g_cvarRequireAllExtends = CreateConVar("sm_extendvote_require_all_extends", "0", "Require all mapchooser extends to be used before admins can call for extend? [1 = Yes | 0 = No]", FCVAR_NONE, true, 0.0, true, 1.0);
 
 	AutoExecConfig(true);
 
@@ -240,10 +246,18 @@ public Action Command_ExtendVote(int client, int argc)
 		CReplyToCommand(client, "{green}[SM] {default}This feature is currently disabled by the server host.");
 		return Plugin_Handled;
 	}
+	
 	if (g_cvarExtendVoteMaxFailedAttempt.IntValue > 0 && numAttempts >= g_cvarExtendVoteMaxFailedAttempt.IntValue)
 	{
 		CReplyToCommand(client, "{green}[SM] {default}Vote already failed %d times. Can't do more extend vote.", numAttempts);
 		LogAction(-1, -1, "%L Attempting to start another extend vote after %d vote failed.. Clamped!", client, numAttempts);
+		return Plugin_Handled;
+	}
+	
+	// Check if all extends are required and if the client can bypass this requirement
+	if (g_cvarRequireAllExtends.BoolValue && (AreExtendsRemaining() || !CheckCommandAccess(client, "sm_extend_bypass", ADMFLAG_CHANGEMAP, false)))
+	{
+		CReplyToCommand(client, "{green}[SM] {default}Cannot start an extend vote until all mapchooser extends are used.");
 		return Plugin_Handled;
 	}
 
@@ -457,4 +471,22 @@ void CancelGameOver()
 				SetEntityMoveType(client, MOVETYPE_WALK);
 		}
 	}
+}
+
+stock bool AreExtendsRemaining()
+{
+#if defined _mapchooser_extended_included_
+	if (GetFeatureStatus(FeatureType_Native, "GetExtendsLeft") == FeatureStatus_Available)
+		return GetExtendsLeft();
+#endif
+
+	// SourceMod MapChooser
+	int extendsRemaining = 0;
+	ConVar cvarExtendsRemaining = FindConVar("sm_mapvote_extend");
+
+	if (cvarExtendsRemaining != null)
+		extendsRemaining = cvarExtendsRemaining.IntValue;
+
+	delete cvarExtendsRemaining;
+	return extendsRemaining > 0;
 }
