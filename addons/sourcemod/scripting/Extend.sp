@@ -50,7 +50,7 @@ public void OnPluginStart()
 	g_cvarExtendVoteTime = CreateConVar("sm_extendvote_time", "15", "Time that will be added to mp_timelimit shall the extend vote succeed", FCVAR_NONE, true, 1.0);
 	g_cvarExtendVotePercent = CreateConVar("sm_extendvote_percent", "0.6", "Percentage of \"yes\" votes required to consider the vote successful", FCVAR_NONE, true, 0.05, true, 1.0);
 	g_cvarExtendVoteMaxFailedAttempt = CreateConVar("sm_extendvote_maxfailed", "0", "Maximum Extend vote failed before locking the Extend vote command \n0 = Disable this function", FCVAR_NONE, true, 0.0);
-	g_cvarRequireAllExtends = CreateConVar("sm_extendvote_require_all_extends", "0", "Require all mapchooser extends to be used before admins can call for extend? [1 = Yes | 0 = No]", FCVAR_NONE, true, 0.0, true, 1.0);
+	g_cvarRequireAllExtends = CreateConVar("sm_extendvote_require_all_extends", "1", "Require all mapchooser extends to be used before admins can call for extend? [1 = Yes | 0 = No]", FCVAR_NONE, true, 0.0, true, 1.0);
 
 	AutoExecConfig(true);
 
