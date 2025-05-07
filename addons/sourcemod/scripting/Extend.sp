@@ -32,7 +32,7 @@ public Plugin myinfo =
 	name        = "Map extend tools",
 	author      = "Obus + BotoX + .Rushaway",
 	description = "Adds map extension commands.",
-	version     = "1.3.1",
+	version     = "1.3.2",
 	url         = ""
 };
 
@@ -255,7 +255,7 @@ public Action Command_ExtendVote(int client, int argc)
 	}
 	
 	// Check if all extends are required and if the client can bypass this requirement
-	if (g_cvarRequireAllExtends.BoolValue && (AreExtendsRemaining() || !CheckCommandAccess(client, "sm_extend_bypass", ADMFLAG_CHANGEMAP, false)))
+	if (g_cvarRequireAllExtends.BoolValue && AreExtendsRemaining() && !CheckCommandAccess(client, "sm_extend_bypass", ADMFLAG_CHANGEMAP, false))
 	{
 		CReplyToCommand(client, "{green}[SM] {default}Cannot start an extend vote until all mapchooser extends are used.");
 		return Plugin_Handled;
