@@ -32,7 +32,7 @@ public Plugin myinfo =
 	name        = "Map extend tools",
 	author      = "Obus + BotoX + .Rushaway",
 	description = "Adds map extension commands.",
-	version     = "1.3.3",
+	version     = "1.3.4",
 	url         = ""
 };
 
@@ -368,7 +368,7 @@ public int Handler_VoteCallback(Menu menu, MenuAction action, int param1, int pa
 		float percent = float(votes) / float(totalVotes);
 		int iTotalPercent = RoundToNearest(100.0 * percent);
 
-		if ((strcmp(item, VOTE_YES) == 0 && FloatCompare(percent, limit) < 0) || strcmp(item, VOTE_NO) == 0)
+		if ((strcmp(item, VOTE_YES) == 0 && percent < limit) || strcmp(item, VOTE_NO) == 0)
 		{
 			int iTotalFailedPercent = RoundToNearest(100.0 * limit);
 
