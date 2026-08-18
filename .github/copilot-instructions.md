@@ -8,22 +8,21 @@ This repository contains a SourcePawn plugin called "Extend" for SourceMod, a sc
 ### Language & Platform
 - **Language**: SourcePawn (.sp files)
 - **Platform**: SourceMod 1.11.0+ (uses modern SourceMod API)
-- **Compiler**: SourcePawn compiler (spcomp) via SourceKnight build system
+- **Compiler**: SourcePawn compiler (spcomp), installed via `rumblefrog/setup-sp` in CI
 - **Target**: Source engine game servers (CS:GO, CS2, TF2, etc.)
 
 ### Build System
-- **Primary Tool**: SourceKnight (Python-based SourceMod build system)
-- **Configuration**: `sourceknight.yaml` defines dependencies and build targets
+- **Primary Tool**: Native GitHub Actions workflow (no external build tool)
+- **Configuration**: `.github/workflows/ci.yml` defines dependencies and build steps
 - **CI/CD**: GitHub Actions (`.github/workflows/ci.yml`) with automated building, testing, and releases
 - **Dependencies**: 
-  - SourceMod 1.11.0-git6917
+  - SourceMod 1.12.x
   - MultiColors (for colored chat)
   - MapChooser Extended (optional integration)
 
 ### Key Files
 - `addons/sourcemod/scripting/Extend.sp` - Main plugin source (492 lines)
 - `addons/sourcemod/gamedata/Extend.games.txt` - Game signatures for memory operations
-- `sourceknight.yaml` - Build configuration and dependencies
 - `.github/workflows/ci.yml` - CI/CD pipeline
 
 ## SourcePawn Language Specifics
@@ -141,13 +140,11 @@ public void OnPluginStart()
 
 ### Build Process
 ```bash
-# Install SourceKnight if not available
-pip install sourceknight
+# Install dependencies (see .github/workflows/ci.yml for the exact steps)
+# Compile the plugin with spcomp
+spcomp -i addons/sourcemod/scripting/include -o addons/sourcemod/plugins/Extend.smx addons/sourcemod/scripting/Extend.sp
 
-# Build the plugin
-sourceknight build
-
-# Output will be in .sourceknight/package/
+# Output will be in addons/sourcemod/plugins/
 ```
 
 ### Manual Testing Checklist
