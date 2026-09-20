@@ -322,7 +322,6 @@ public Action Command_RoundExtend(int client, int argc)
 	CPrintToChatAll("{green}[SM]{default} %N added %d minutes to \"mp_timelimit\" based on the current round time elapsed.", client, remainingTime);
 	LogAction(client, -1, "\"%L\" added \"%d\" minutes to \"mp_timelimit\" based on the current round time elapsed.", client, remainingTime);
 
-	delete cvarRoundTime;
 	return Plugin_Handled;
 }
 
@@ -487,6 +486,5 @@ stock bool AreExtendsRemaining()
 	if (cvarExtendsRemaining != null)
 		extendsRemaining = cvarExtendsRemaining.IntValue;
 
-	delete cvarExtendsRemaining;
 	return extendsRemaining > 0;
 }
