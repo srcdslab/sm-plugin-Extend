@@ -186,8 +186,7 @@ public Action Command_ExtendVote(int client, int argc)
 		GetCmdArg(1, sArg, sizeof(sArg));
 
 		int Tmp;
-		bool isNegative;
-		if (!ParseValue(sArg, Tmp, isNegative) || isNegative)
+		if (!ParseValue(sArg, Tmp) || Tmp < 0)
 		{
 			CReplyToCommand(client, "%s {default}%t", PLUGIN_TAG, "Invalid Value");
 			return Plugin_Handled;
@@ -198,7 +197,7 @@ public Action Command_ExtendVote(int client, int argc)
 			g_iExtendTime = Tmp > maxDuration ? maxDuration : Tmp;
 	}
 
-	if (!CanChangeLimit(client, g_cvarMpTimeLimit, g_iExtendTime, false))
+	if (!CanChangeLimit(client, g_cvarMpTimeLimit, g_iExtendTime))
 		return Plugin_Handled;
 
 	// Capture the requirement now so changing the convars mid-vote can't move it
@@ -242,7 +241,7 @@ public Action Command_RoundExtend(int client, int argc)
 		return Plugin_Handled;
 	}
 
-	if (!CanChangeLimit(client, g_cvarMpTimeLimit, elapsedMinutes, false))
+	if (!CanChangeLimit(client, g_cvarMpTimeLimit, elapsedMinutes))
 		return Plugin_Handled;
 
 	ChangeLimit(g_cvarMpTimeLimit, elapsedMinutes);
@@ -302,7 +301,7 @@ public int Handler_VoteCallback(Menu menu, MenuAction action, int param1, int pa
 		else
 		{
 			// The limit may have changed while the vote was running
-			if (!CanChangeLimit(0, g_cvarMpTimeLimit, g_iExtendTime, false))
+			if (!CanChangeLimit(0, g_cvarMpTimeLimit, g_iExtendTime))
 			{
 				LogAction(-1, -1, "Extend vote passed, but \"mp_timelimit\" can no longer be extended. Extension skipped.");
 				CPrintToChatAll("%s {default}%t", PLUGIN_TAG, "Extend Vote Passed No Limit");
@@ -338,15 +337,14 @@ Action HandleLimitCommand(int client, int argc, ConVar cvar, const char[] sComma
 	char sArg[16];
 	GetCmdArg(1, sArg, sizeof(sArg));
 
-	int value;
-	bool isNegative;
-	if (!ParseValue(sArg, value, isNegative))
+	int delta;
+	if (!ParseValue(sArg, delta))
 	{
 		CReplyToCommand(client, "%s {default}%t", PLUGIN_TAG, "Invalid Value");
 		return Plugin_Handled;
 	}
 
-	if (!CanChangeLimit(client, cvar, value, isNegative))
+	if (!CanChangeLimit(client, cvar, delta))
 		return Plugin_Handled;
 
 	char sName[32];
@@ -357,7 +355,11 @@ Action HandleLimitCommand(int client, int argc, ConVar cvar, const char[] sComma
 	if (isTime)
 		GenerateTimeleft(sOldTimeleft, sizeof(sOldTimeleft));
 
-	ChangeLimit(cvar, isNegative ? -value : value);
+	ChangeLimit(cvar, delta);
+
+	// Messages show the amount without its sign and say added or deducted instead
+	bool isNegative = (delta < 0);
+	int value = isNegative ? -delta : delta;
 
 	char sAction[16], sPrep[8];
 	strcopy(sAction, sizeof(sAction), isNegative ? "deducted" : "added");
@@ -412,17 +414,17 @@ stock void GenerateTimeleft(char[] sTimeleft, int size)
 	FormatEx(sTimeleft, size, "%02d:%02d", TimeLeft / 60, TimeLeft % 60);
 }
 
-// Parses "<n>" or "-<n>" into a non-negative value and a sign
-stock bool ParseValue(const char[] sArg, int &value, bool &isNegative)
+// Parses "<n>" or "-<n>" into a signed amount
+stock bool ParseValue(const char[] sArg, int &delta)
 {
-	isNegative = (sArg[0] == '-');
+	bool isNegative = (sArg[0] == '-');
 	int start = isNegative ? 1 : 0;
 
 	if (sArg[start] == '\0')
 		return false;
 
 	// Accept plain digits only and build the number by hand, so nothing can wrap past cellmax
-	value = 0;
+	int value = 0;
 	for (int i = start; sArg[i] != '\0'; i++)
 	{
 		if (sArg[i] < '0' || sArg[i] > '9')
@@ -435,19 +437,14 @@ stock bool ParseValue(const char[] sArg, int &value, bool &isNegative)
 		value = value * 10 + digit;
 	}
 
+	delta = isNegative ? -value : value;
 	return true;
 }
 
-stock bool CanChangeLimit(int client, ConVar cvar, int value, bool isNegative)
+stock bool CanChangeLimit(int client, ConVar cvar, int delta)
 {
 	char sName[32];
 	cvar.GetName(sName, sizeof(sName));
-
-	if (value < 0)
-	{
-		CReplyToCommand(client, "%s {default}%t", PLUGIN_TAG, "Invalid Value");
-		return false;
-	}
 
 	// Read as a float for every limit, since mp_timelimit can be fractional
 	bool isTime = (cvar == g_cvarMpTimeLimit);
@@ -460,22 +457,22 @@ stock bool CanChangeLimit(int client, ConVar cvar, int value, bool isNegative)
 		return false;
 	}
 
-	if (isNegative && fCurrent - float(value) <= 0.0)
+	if (delta < 0 && fCurrent + float(delta) <= 0.0)
 	{
 		if (isTime)
-			CReplyToCommand(client, "%s {default}%t", PLUGIN_TAG, "Time Limit Below Zero", sName, fCurrent - float(value));
+			CReplyToCommand(client, "%s {default}%t", PLUGIN_TAG, "Time Limit Below Zero", sName, fCurrent + float(delta));
 		else
-			CReplyToCommand(client, "%s {default}%t", PLUGIN_TAG, "Limit Below Zero", sName, cvar.IntValue - value);
+			CReplyToCommand(client, "%s {default}%t", PLUGIN_TAG, "Limit Below Zero", sName, cvar.IntValue + delta);
 		return false;
 	}
 
-	if (!isNegative && isTime && fCurrent + float(value) > MAX_TIMELIMIT_MINUTES)
+	if (delta > 0 && isTime && fCurrent + float(delta) > MAX_TIMELIMIT_MINUTES)
 	{
 		CReplyToCommand(client, "%s {default}%t", PLUGIN_TAG, "Value Too Large", sName);
 		return false;
 	}
 
-	if (!isNegative && !isTime && value > cellmax - cvar.IntValue)
+	if (delta > 0 && !isTime && delta > cellmax - cvar.IntValue)
 	{
 		CReplyToCommand(client, "%s {default}%t", PLUGIN_TAG, "Value Too Large", sName);
 		return false;
