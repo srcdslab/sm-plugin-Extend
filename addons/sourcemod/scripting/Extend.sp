@@ -13,26 +13,29 @@
 #define VOTE_YES "###yes###"
 
 int numAttempts = 0;
+int g_iExtendCount = 0;
 
-ConVar g_cvarExtendVoteTime = null;
-ConVar g_cvarExtendVotePercent = null;
-ConVar g_cvarExtendVoteMaxFailedAttempt = null;
-ConVar g_cvarExtendVote = null;
-ConVar g_cvarMpMaxRounds = null;
-ConVar g_cvarMpFragLimit = null;
-ConVar g_cvarMpWinLimit = null;
-ConVar g_cvarMpTimeLimit = null;
-ConVar g_cvarRequireAllExtends = null;
+ConVar g_cvarExtendVoteTime;
+ConVar g_cvarExtendVotePercent;
+ConVar g_cvarExtendVotePercentIncrement;
+ConVar g_cvarExtendVotePercentMax;
+ConVar g_cvarExtendVoteMaxFailedAttempt;
+ConVar g_cvarExtendVote;
+ConVar g_cvarMpMaxRounds;
+ConVar g_cvarMpFragLimit;
+ConVar g_cvarMpWinLimit;
+ConVar g_cvarMpTimeLimit;
+ConVar g_cvarRequireAllExtends;
 
 bool g_bGameOver = false;
 Address g_pGameOver;
 
 public Plugin myinfo =
 {
-	name        = "Map extend tools",
-	author      = "Obus + BotoX + .Rushaway",
+	name        = "Map Extend Tools",
+	author      = "Obus, BotoX, .Rushaway, koen",
 	description = "Adds map extension commands.",
-	version     = "1.3.5",
+	version     = "1.4.0",
 	url         = ""
 };
 
@@ -49,6 +52,8 @@ public void OnPluginStart()
 	g_cvarExtendVote = CreateConVar("sm_extendvote_enabled", "1", "Enable Extend Vote? [1 = Enable | 0 = Disable]", FCVAR_NONE, true, 0.0, true, 1.0);
 	g_cvarExtendVoteTime = CreateConVar("sm_extendvote_time", "15", "Time that will be added to mp_timelimit shall the extend vote succeed", FCVAR_NONE, true, 1.0);
 	g_cvarExtendVotePercent = CreateConVar("sm_extendvote_percent", "0.6", "Percentage of \"yes\" votes required to consider the vote successful", FCVAR_NONE, true, 0.05, true, 1.0);
+	g_cvarExtendVotePercentIncrement = CreateConVar("sm_extendvote_percent_increment", "0.0", "Percentage added to the required \"yes\" votes for each successful extend vote on the current map", FCVAR_NONE, true, 0.0, true, 1.0);
+	g_cvarExtendVotePercentMax = CreateConVar("sm_extendvote_percent_max", "0.9", "Maximum percentage of \"yes\" votes that can be required after increments", FCVAR_NONE, true, 0.05, true, 1.0);
 	g_cvarExtendVoteMaxFailedAttempt = CreateConVar("sm_extendvote_maxfailed", "0", "Maximum Extend vote failed before locking the Extend vote command \n0 = Disable this function", FCVAR_NONE, true, 0.0);
 	g_cvarRequireAllExtends = CreateConVar("sm_extendvote_require_all_extends", "1", "Require all mapchooser extends to be used before admins can call for extend? [1 = Yes | 0 = No]", FCVAR_NONE, true, 0.0, true, 1.0);
 
@@ -76,33 +81,32 @@ public void OnPluginStart()
 		RegAdminCmd("sm_roundextend", Command_RoundExtend, ADMFLAG_GENERIC, "sm_roundextend - Extend mp_timelimit elapsed time since the start of the round");
 	}
 	else
-	{
 		LogMessage("Failed to find \"mp_timelimit\" console variable, related commands will be disabled.");
-	}
 
-	Handle hGameConf = LoadGameConfigFile("Extend.games");
-	if (hGameConf == INVALID_HANDLE)
+	GameData hGameConf = new GameData("Extend.games");
+	if (!hGameConf)
 	{
 		g_bGameOver = false;
 		LogError("Couldn't load Extend.games game config! GameOver cancel disabled.");
 		return;
 	}
 
-	if (!(g_pGameOver = GameConfGetAddress(hGameConf, "GameOver")))
+	if (!(g_pGameOver = hGameConf.GetAddress("GameOver")))
 	{
 		g_bGameOver = false;
-		CloseHandle(hGameConf);
+		delete hGameConf;
 		LogError("Couldn't get GameOver address from game config! GameOver cancel disabled.");
 		return;
 	}
-	CloseHandle(hGameConf);
 
+	delete hGameConf;
 	g_bGameOver = true;
 }
 
 public void OnMapEnd()
 {
 	numAttempts = 0;
+	g_iExtendCount = 0;
 }
 
 public Action Command_Extend_Rounds(int client, int argc)
@@ -213,7 +217,7 @@ public Action Command_Extend(int client, int argc)
 		return Plugin_Handled;
 	}
 
-	// Prevent infinte time
+	// Prevent infinite time
 	if (isNegative)
 	{
 		int Total, TimeLimit;
@@ -241,15 +245,15 @@ public Action Command_Extend(int client, int argc)
 int g_ExtendTime = 0;
 public Action Command_ExtendVote(int client, int argc)
 {
-	if (g_cvarExtendVote.IntValue != 1)
+	if (!g_cvarExtendVote.BoolValue)
 	{
-		CReplyToCommand(client, "{green}[SM] {default}This feature is currently disabled by the server host.");
+		CReplyToCommand(client, "{green}[SM] {default}This feature is currently disabled.");
 		return Plugin_Handled;
 	}
 	
 	if (g_cvarExtendVoteMaxFailedAttempt.IntValue > 0 && numAttempts >= g_cvarExtendVoteMaxFailedAttempt.IntValue)
 	{
-		CReplyToCommand(client, "{green}[SM] {default}Vote already failed %d times. Can't do more extend vote.", numAttempts);
+		CReplyToCommand(client, "{green}[SM] {default}Vote already failed %d time%s. Can't do more extend vote.", numAttempts, numAttempts > 1 ? "s" : "");
 		LogAction(-1, -1, "%L Attempting to start another extend vote after %d vote failed.. Clamped!", client, numAttempts);
 		return Plugin_Handled;
 	}
@@ -288,7 +292,7 @@ public Action Command_ExtendVote(int client, int argc)
 	hVoteMenu.DisplayVoteToAll(20);
 
 	int TimeLeft;
-	TimeLeft = GetMapTimeLeft(TimeLeft);
+	GetMapTimeLeft(TimeLeft);
 	if (TimeLeft >= 0) 
 	{
 		char sTimeleft[128];
@@ -314,7 +318,7 @@ public Action Command_RoundExtend(int client, int argc)
 		return Plugin_Handled;
 	}
 
-	float fInitialRoundTime = GetConVarFloat(cvarRoundTime);
+	float fInitialRoundTime = cvarRoundTime.FloatValue;
 	float fElapsedTime = (GameRules_GetPropFloat("m_fRoundStartTime") + GameRules_GetProp("m_iRoundTime") - GetGameTime()) / 60.0;
 	int remainingTime = RoundToFloor(fInitialRoundTime - fElapsedTime);
 
@@ -363,7 +367,12 @@ public int Handler_VoteCallback(Menu menu, MenuAction action, int param1, int pa
 			votes = totalVotes - votes;
 		}
 
-		float limit = g_cvarExtendVotePercent.FloatValue;
+		float limit = g_cvarExtendVotePercent.FloatValue + (g_cvarExtendVotePercentIncrement.FloatValue * float(g_iExtendCount));
+		float fMax = g_cvarExtendVotePercentMax.FloatValue;
+
+		if (limit > fMax)
+			limit = fMax;
+
 		float percent = float(votes) / float(totalVotes);
 		int iTotalPercent = RoundToNearest(100.0 * percent);
 
@@ -394,6 +403,7 @@ public int Handler_VoteCallback(Menu menu, MenuAction action, int param1, int pa
 			PrintToServer("[SM] %t", "Vote Successful", iTotalPercent, totalVotes);
 			CPrintToChatAll("{green}[SM]{default} %t", "Vote Successful", iTotalPercent, totalVotes);
 			numAttempts = 0;
+			g_iExtendCount++;
 		}
 	}
 
