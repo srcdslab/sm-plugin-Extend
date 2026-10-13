@@ -66,6 +66,16 @@
 		"zho"			"{1} 根據目前回合已進行的時間，為 \"mp_timelimit\" 增加了 {2} 分鐘。"
 	}
 
+	"Vote Menu Title"
+	{
+		"#format"		"{1:d},{2:s}"
+		"en"			"Extend map by {1} minutes? ({2}%% required)"
+		"fr"			"Prolonger la carte de {1} minutes ? ({2}%% requis)"
+		"ru"			"Продлить карту на {1} мин.? (Требуется {2}%%)"
+		"chi"			"将地图延长 {1} 分钟？（需要 {2}%%）"
+		"zho"			"將地圖延長 {1} 分鐘？（需要 {2}%%）"
+	}
+
 	"Extend Vote Failed"
 	{
 		"#format"		"{1:s},{2:s},{3:d}"

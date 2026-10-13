@@ -203,7 +203,7 @@ public Action Command_ExtendVote(int client, int argc)
 	// Capture the requirement now so changing the convars mid-vote can't move it
 	g_fVoteRequired = GetRequiredVoteRatio();
 
-	Menu hVoteMenu = new Menu(Handler_VoteCallback, MenuAction_End|MenuAction_DisplayItem|MenuAction_VoteCancel|MenuAction_VoteEnd);
+	Menu hVoteMenu = new Menu(Handler_VoteCallback, MenuAction_End|MenuAction_Display|MenuAction_DisplayItem|MenuAction_VoteCancel|MenuAction_VoteEnd);
 	char sRequired[16];
 	FormatPercent(g_fVoteRequired, sRequired, sizeof(sRequired));
 	hVoteMenu.SetTitle("Extend map by %d minutes? (%s%% required)", g_iExtendTime, sRequired);
@@ -255,6 +255,14 @@ public int Handler_VoteCallback(Menu menu, MenuAction action, int param1, int pa
 {
 	if (action == MenuAction_End)
 		delete menu;
+	else if (action == MenuAction_Display)
+	{
+		// Translate the title for each player; the SetTitle in Command_ExtendVote is the fallback
+		char sRequired[16], sTitle[128];
+		FormatPercent(g_fVoteRequired, sRequired, sizeof(sRequired));
+		Format(sTitle, sizeof(sTitle), "%T", "Vote Menu Title", param1, g_iExtendTime, sRequired);
+		view_as<Panel>(param2).SetTitle(sTitle);
+	}
 	else if (action == MenuAction_DisplayItem)
 	{
 		char display[64];
