@@ -38,6 +38,8 @@ jobs:
           cp addons/sourcemod/plugins/*.smx /tmp/package/addons/sourcemod/plugins/
           mkdir -p /tmp/package/addons/sourcemod/gamedata
           cp -R addons/sourcemod/gamedata/* /tmp/package/addons/sourcemod/gamedata/
+          mkdir -p /tmp/package/addons/sourcemod/translations
+          cp -R addons/sourcemod/translations/* /tmp/package/addons/sourcemod/translations/
 
       - name: Upload build archive for test runners
         uses: actions/upload-artifact@v7
