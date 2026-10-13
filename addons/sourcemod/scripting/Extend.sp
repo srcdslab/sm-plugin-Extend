@@ -12,11 +12,13 @@
 #define VOTE_NO "###no###"
 #define VOTE_YES "###yes###"
 
-int numAttempts = 0;
+int g_iNumAttempts = 0;
 int g_iExtendCount = 0;
+int g_iExtendTime = 0;
 float g_fVoteRequired = 0.0;
 
 ConVar g_cvarExtendVoteTime;
+ConVar g_cvarExtendVoteMaxDuration;
 ConVar g_cvarExtendVotePercent;
 ConVar g_cvarExtendVotePercentIncrement;
 ConVar g_cvarExtendVotePercentMax;
@@ -28,7 +30,7 @@ ConVar g_cvarMpWinLimit;
 ConVar g_cvarMpTimeLimit;
 ConVar g_cvarRequireAllExtends;
 
-bool g_bGameOver = false;
+bool g_bCanCancelGameOver = false;
 Address g_pGameOver;
 
 public Plugin myinfo =
@@ -52,9 +54,10 @@ public void OnPluginStart()
 
 	g_cvarExtendVote = CreateConVar("sm_extendvote_enabled", "1", "Enable Extend Vote? [1 = Enable | 0 = Disable]", FCVAR_NONE, true, 0.0, true, 1.0);
 	g_cvarExtendVoteTime = CreateConVar("sm_extendvote_time", "15", "Time that will be added to mp_timelimit shall the extend vote succeed", FCVAR_NONE, true, 1.0);
+	g_cvarExtendVoteMaxDuration = CreateConVar("sm_extendvote_max_duration", "30", "Maximum minutes an admin can request with \"sm_extend <time>\"", FCVAR_NONE, true, 1.0);
 	g_cvarExtendVotePercent = CreateConVar("sm_extendvote_percent", "0.6", "Percentage of \"yes\" votes required to consider the vote successful", FCVAR_NONE, true, 0.05, true, 1.0);
-	g_cvarExtendVotePercentIncrement = CreateConVar("sm_extendvote_percent_increment", "0.0", "Percentage added to the required \"yes\" votes for each successful extend vote on the current map", FCVAR_NONE, true, 0.0, true, 1.0);
-	g_cvarExtendVotePercentMax = CreateConVar("sm_extendvote_percent_max", "1.0", "Maximum percentage of \"yes\" votes that can be required after increments", FCVAR_NONE, true, 0.05, true, 1.0);
+	g_cvarExtendVotePercentIncrement = CreateConVar("sm_extendvote_percent_increment", "0.1", "Percentage added to the required \"yes\" votes for each successful extend vote on the current map", FCVAR_NONE, true, 0.0, true, 1.0);
+	g_cvarExtendVotePercentMax = CreateConVar("sm_extendvote_percent_max", "0.9", "Maximum percentage of \"yes\" votes that can be required after increments", FCVAR_NONE, true, 0.05, true, 1.0);
 	g_cvarExtendVoteMaxFailedAttempt = CreateConVar("sm_extendvote_maxfailed", "0", "Maximum Extend vote failed before locking the Extend vote command \n0 = Disable this function", FCVAR_NONE, true, 0.0);
 	g_cvarRequireAllExtends = CreateConVar("sm_extendvote_require_all_extends", "1", "Require all mapchooser extends to be used before admins can call for extend? Only works with MapChooser Extended [1 = Yes | 0 = No]", FCVAR_NONE, true, 0.0, true, 1.0);
 
@@ -87,21 +90,20 @@ public void OnPluginStart()
 	GameData hGameConf = new GameData("Extend.games");
 	if (!hGameConf)
 	{
-		g_bGameOver = false;
 		LogError("Couldn't load Extend.games game config! GameOver cancel disabled.");
 		return;
 	}
 
-	if (!(g_pGameOver = hGameConf.GetAddress("GameOver")))
+	g_pGameOver = hGameConf.GetAddress("GameOver");
+	delete hGameConf;
+
+	if (!g_pGameOver)
 	{
-		g_bGameOver = false;
-		delete hGameConf;
 		LogError("Couldn't get GameOver address from game config! GameOver cancel disabled.");
 		return;
 	}
 
-	delete hGameConf;
-	g_bGameOver = true;
+	g_bCanCancelGameOver = true;
 }
 
 public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max)
@@ -114,143 +116,30 @@ public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max
 
 public void OnMapEnd()
 {
-	numAttempts = 0;
+	g_iNumAttempts = 0;
 	g_iExtendCount = 0;
 }
 
 public Action Command_Extend_Rounds(int client, int argc)
 {
-	if (argc < 1)
-	{
-		CReplyToCommand(client, "{green}[SM] {default}Usage: sm_extend_rounds {olive}<rounds>");
-		return Plugin_Handled;
-	}
-
-	char sArgs[16];
-	GetCmdArg(1, sArgs, sizeof(sArgs));
-
-	int iRounds;
-	bool isNegative = (sArgs[0] == '-');
-
-	char sOutputArg[16];
-	GenerateArgs(sArgs, sizeof(sArgs), sOutputArg, isNegative);
-	if (!ParseValue(sOutputArg, iRounds))
-	{
-		CReplyToCommand(client, "{green}[SM] {default}Invalid value.");
-		return Plugin_Handled;
-	}
-
-	if (!CanChangeLimit(client, g_cvarMpMaxRounds, iRounds, isNegative))
-		return Plugin_Handled;
-
-	HandleExtending(g_cvarMpMaxRounds, iRounds, isNegative);
-	CShowActivity2(client, "{green}[SM]{olive} ", "{default}%s %d rounds %s \"mp_maxrounds\"", isNegative ? "deducted" : "added", iRounds, isNegative ? "from" : "to");
-	LogAction(client, -1, "\"%L\" %s \"%d\" rounds %s \"mp_maxrounds\"", client, isNegative ? "deducted" : "added", iRounds, isNegative ? "from" : "to");
-	return Plugin_Handled;
+	return HandleLimitCommand(client, argc, g_cvarMpMaxRounds, "sm_extend_rounds", "rounds");
 }
 
 public Action Command_Extend_Frags(int client, int argc)
 {
-	if (argc < 1)
-	{
-		CReplyToCommand(client, "{green}[SM] {default}Usage: sm_extend_frags {olive}<frags>");
-		return Plugin_Handled;
-	}
-
-	char sArgs[16];
-	GetCmdArg(1, sArgs, sizeof(sArgs));
-
-	int iFrags;
-	bool isNegative = (sArgs[0] == '-');
-
-	char sOutputArg[16];
-	GenerateArgs(sArgs, sizeof(sArgs), sOutputArg, isNegative);
-	if (!ParseValue(sOutputArg, iFrags))
-	{
-		CReplyToCommand(client, "{green}[SM] {default}Invalid value.");
-		return Plugin_Handled;
-	}
-
-	if (!CanChangeLimit(client, g_cvarMpFragLimit, iFrags, isNegative))
-		return Plugin_Handled;
-
-	HandleExtending(g_cvarMpFragLimit, iFrags, isNegative);
-	CShowActivity2(client, "{green}[SM]{olive} ", "{default}%s %d frags %s \"mp_fraglimit\"", isNegative ? "deducted" : "added", iFrags, isNegative ? "from" : "to");
-	LogAction(client, -1, "\"%L\" %s \"%d\" frags %s \"mp_fraglimit\"", client, isNegative ? "deducted" : "added", iFrags, isNegative ? "from" : "to");
-
-	return Plugin_Handled;
+	return HandleLimitCommand(client, argc, g_cvarMpFragLimit, "sm_extend_frags", "frags");
 }
 
 public Action Command_Extend_Wins(int client, int argc)
 {
-	if (argc < 1)
-	{
-		CReplyToCommand(client, "{green}[SM] {default}Usage: sm_extend_wins {olive}<wins>");
-		return Plugin_Handled;
-	}
-
-	char sArgs[16];
-	GetCmdArg(1, sArgs, sizeof(sArgs));
-
-	int iWins;
-	bool isNegative = (sArgs[0] == '-');
-
-	char sOutputArg[16];
-	GenerateArgs(sArgs, sizeof(sArgs), sOutputArg, isNegative);
-	if (!ParseValue(sOutputArg, iWins))
-	{
-		CReplyToCommand(client, "{green}[SM] {default}Invalid value.");
-		return Plugin_Handled;
-	}
-
-	if (!CanChangeLimit(client, g_cvarMpWinLimit, iWins, isNegative))
-		return Plugin_Handled;
-
-	HandleExtending(g_cvarMpWinLimit, iWins, isNegative);
-	CShowActivity2(client, "{green}[SM]{olive} ", "{default}%s %d wins %s \"mp_winlimit\"", isNegative ? "deducted" : "added", iWins, isNegative ? "from" : "to");
-	LogAction(client, -1, "\"%L\" %s \"%d\" wins %s \"mp_winlimit\"", client, isNegative ? "deducted" : "added", iWins, isNegative ? "from" : "to");
-
-	return Plugin_Handled;
+	return HandleLimitCommand(client, argc, g_cvarMpWinLimit, "sm_extend_wins", "wins");
 }
 
 public Action Command_Extend(int client, int argc)
 {
-	if (argc < 1)
-	{
-		CReplyToCommand(client, "{green}[SM] {default}Usage: sm_extendmap {olive}<time>");
-		return Plugin_Handled;
-	}
-
-	char sArgs[16];
-	GetCmdArg(1, sArgs, sizeof(sArgs));
-
-	int iMinutes;
-	bool isNegative = (sArgs[0] == '-');
-
-	char sOutputArg[16];
-	GenerateArgs(sArgs, sizeof(sArgs), sOutputArg, isNegative);
-	if (!ParseValue(sOutputArg, iMinutes))
-	{
-		CReplyToCommand(client, "{green}[SM] {default}Invalid value.");
-		return Plugin_Handled;
-	}
-
-	if (!CanChangeLimit(client, g_cvarMpTimeLimit, iMinutes, isNegative))
-		return Plugin_Handled;
-
-	char sOldTimeleft[128];
-	GenerateTimeleft(sOldTimeleft, sizeof(sOldTimeleft));
-	HandleExtending(g_cvarMpTimeLimit, iMinutes, isNegative);
-
-	char sTimeleft[128];
-	GenerateTimeleft(sTimeleft, sizeof(sTimeleft));
-
-	CShowActivity2(client, "{green}[SM]{olive} ", "{default}%s %d minutes %s \"mp_timelimit\"", isNegative ? "deducted" : "added", iMinutes, isNegative ? "from" : "to");
-	LogAction(client, -1, "\"%L\" %s \"%d\" minutes %s \"mp_timelimit\"\nPrevious Timeleft: %s\nNew Timeleft: %s", client, isNegative ? "deducted" : "added", iMinutes, isNegative ? "from" : "to", sOldTimeleft, sTimeleft);
-	return Plugin_Handled;
+	return HandleLimitCommand(client, argc, g_cvarMpTimeLimit, "sm_extendmap", "minutes");
 }
 
-int g_ExtendTime = 0;
 public Action Command_ExtendVote(int client, int argc)
 {
 	if (!g_cvarExtendVote.BoolValue)
@@ -258,14 +147,14 @@ public Action Command_ExtendVote(int client, int argc)
 		CReplyToCommand(client, "{green}[SM] {default}This feature is currently disabled.");
 		return Plugin_Handled;
 	}
-	
-	if (g_cvarExtendVoteMaxFailedAttempt.IntValue > 0 && numAttempts >= g_cvarExtendVoteMaxFailedAttempt.IntValue)
+
+	if (g_cvarExtendVoteMaxFailedAttempt.IntValue > 0 && g_iNumAttempts >= g_cvarExtendVoteMaxFailedAttempt.IntValue)
 	{
-		CReplyToCommand(client, "{green}[SM] {default}Vote already failed %d time%s. Can't do more extend vote.", numAttempts, numAttempts > 1 ? "s" : "");
-		LogAction(-1, -1, "%L Attempting to start another extend vote after %d vote failed.. Clamped!", client, numAttempts);
+		CReplyToCommand(client, "{green}[SM] {default}Vote already failed %d time%s. Can't do more extend vote.", g_iNumAttempts, g_iNumAttempts > 1 ? "s" : "");
+		LogAction(-1, -1, "%L Attempting to start another extend vote after %d vote failed.. Clamped!", client, g_iNumAttempts);
 		return Plugin_Handled;
 	}
-	
+
 	// Check if all extends are required and if the client can bypass this requirement
 	if (g_cvarRequireAllExtends.BoolValue && AreExtendsRemaining() && !CheckCommandAccess(client, "sm_extend_bypass", ADMFLAG_CHANGEMAP, false))
 	{
@@ -279,24 +168,25 @@ public Action Command_ExtendVote(int client, int argc)
 		return Plugin_Handled;
 	}
 
-	g_ExtendTime = g_cvarExtendVoteTime.IntValue;
+	g_iExtendTime = g_cvarExtendVoteTime.IntValue;
 	if (argc == 1)
 	{
 		char sArg[64];
 		GetCmdArg(1, sArg, sizeof(sArg));
 		int Tmp = StringToInt(sArg);
+		int maxDuration = g_cvarExtendVoteMaxDuration.IntValue;
 		if (Tmp > 0)
-			g_ExtendTime = Tmp > 30 ? 30 : Tmp;
+			g_iExtendTime = Tmp > maxDuration ? maxDuration : Tmp;
 	}
 
-	if (!CanChangeLimit(client, g_cvarMpTimeLimit, g_ExtendTime, false))
+	if (!CanChangeLimit(client, g_cvarMpTimeLimit, g_iExtendTime, false))
 		return Plugin_Handled;
 
 	// Capture the requirement now so changing the convars mid-vote can't move it
 	g_fVoteRequired = GetRequiredVoteRatio();
 
 	Menu hVoteMenu = new Menu(Handler_VoteCallback, MenuAction_End|MenuAction_DisplayItem|MenuAction_VoteCancel|MenuAction_VoteEnd);
-	hVoteMenu.SetTitle("Extend the current map (%d minutes)? [%d%% required]", g_ExtendTime, RoundToNearest(100.0 * g_fVoteRequired));
+	hVoteMenu.SetTitle("Extend map by %d minutes? (%d%% required)", g_iExtendTime, RoundToNearest(100.0 * g_fVoteRequired));
 
 	hVoteMenu.AddItem(VOTE_YES, "Yes");
 	hVoteMenu.AddItem(VOTE_NO, "No");
@@ -305,20 +195,16 @@ public Action Command_ExtendVote(int client, int argc)
 	hVoteMenu.ExitButton = false;
 	hVoteMenu.DisplayVoteToAll(20);
 
+	char sTimeleft[128];
 	int TimeLeft;
 	GetMapTimeLeft(TimeLeft);
-	if (TimeLeft >= 0) 
-	{
-		char sTimeleft[128];
+	if (TimeLeft >= 0)
 		GenerateTimeleft(sTimeleft, sizeof(sTimeleft));
-		CShowActivity2(client, "{green}[SM]{olive} ", "{default}Initiated an extend vote.");
-		LogAction(client, -1, "\"%L\" Initiated an extend vote. (%d minutes)\nTimeLeft: %s", client, g_ExtendTime, sTimeleft);
-	}
 	else
-	{
-		CShowActivity2(client, "{green}[SM]{olive} ", "{default}Initiated an extend vote.");
-		LogAction(client, -1, "\"%L\" Initiated an extend vote. (%d minutes)\nTimeLeft: 0:00 (This is the last round!)", client, g_ExtendTime);
-	}
+		strcopy(sTimeleft, sizeof(sTimeleft), "0:00 (This is the last round!)");
+
+	CShowActivity2(client, "{green}[SM]{olive} ", "{default}Initiated an extend vote.");
+	LogAction(client, -1, "\"%L\" Initiated an extend vote. (%d minutes)\nTimeLeft: %s", client, g_iExtendTime, sTimeleft);
 
 	return Plugin_Handled;
 }
@@ -338,7 +224,7 @@ public Action Command_RoundExtend(int client, int argc)
 	if (!CanChangeLimit(client, g_cvarMpTimeLimit, elapsedMinutes, false))
 		return Plugin_Handled;
 
-	ExtendMap(g_cvarMpTimeLimit, elapsedMinutes);
+	ChangeLimit(g_cvarMpTimeLimit, elapsedMinutes);
 	CPrintToChatAll("{green}[SM]{default} %N added %d minutes to \"mp_timelimit\" based on the current round time elapsed.", client, elapsedMinutes);
 	LogAction(client, -1, "\"%L\" added \"%d\" minutes to \"mp_timelimit\" based on the current round time elapsed.", client, elapsedMinutes);
 
@@ -380,22 +266,21 @@ public int Handler_VoteCallback(Menu menu, MenuAction action, int param1, int pa
 
 		// votes is now the yes count; the result depends only on it, not on which option won
 		float fYesRatio = float(votes) / float(totalVotes);
-		int iTotalFailedPercent = RoundToNearest(100.0 * g_fVoteRequired);
-		int iTotalPercent = RoundToNearest(100.0 * fYesRatio);
+		int iRequiredPercent = RoundToNearest(100.0 * g_fVoteRequired);
+		int iYesPercent = RoundToNearest(100.0 * fYesRatio);
 
 		// Small epsilon so sums like 0.6 + 0.05 * 2 (0.70000005) still accept exactly 70%
 		if (fYesRatio + 0.0001 < g_fVoteRequired)
 		{
-
-			LogAction(-1, -1, "Extend %t", "Vote Failed", iTotalFailedPercent, iTotalPercent, totalVotes);
-			PrintToServer("[SM] %t", "Vote Failed", iTotalFailedPercent, iTotalPercent, totalVotes);
-			CPrintToChatAll("{green}[SM]{default} %t", "Vote Failed", iTotalFailedPercent, iTotalPercent, totalVotes);
-			numAttempts++;
+			LogAction(-1, -1, "Extend %t", "Vote Failed", iRequiredPercent, iYesPercent, totalVotes);
+			PrintToServer("[SM] %t", "Vote Failed", iRequiredPercent, iYesPercent, totalVotes);
+			CPrintToChatAll("{green}[SM]{default} %t", "Vote Failed", iRequiredPercent, iYesPercent, totalVotes);
+			g_iNumAttempts++;
 		}
 		else
 		{
 			// The limit may have changed while the vote was running
-			if (!CanChangeLimit(0, g_cvarMpTimeLimit, g_ExtendTime, false))
+			if (!CanChangeLimit(0, g_cvarMpTimeLimit, g_iExtendTime, false))
 			{
 				LogAction(-1, -1, "Extend vote passed, but \"mp_timelimit\" can no longer be extended. Extension skipped.");
 				CPrintToChatAll("{green}[SM]{default} The vote passed, but \"mp_timelimit\" can no longer be extended.");
@@ -405,19 +290,69 @@ public int Handler_VoteCallback(Menu menu, MenuAction action, int param1, int pa
 			char sOldTimeleft[128];
 			GenerateTimeleft(sOldTimeleft, sizeof(sOldTimeleft));
 
-			ExtendMap(g_cvarMpTimeLimit, g_ExtendTime);
+			ChangeLimit(g_cvarMpTimeLimit, g_iExtendTime);
 
 			char sTimeleft[128];
 			GenerateTimeleft(sTimeleft, sizeof(sTimeleft));
-			LogAction(-1, -1, "Extend %t \nExtending current map by \"%d\" minutes.\nPrevious TimeLeft: %s\nNew TimeLeft: %s","Vote Successful", iTotalPercent, totalVotes, g_ExtendTime, sOldTimeleft, sTimeleft);
-			PrintToServer("[SM] %t", "Vote Successful", iTotalPercent, totalVotes);
-			CPrintToChatAll("{green}[SM]{default} %t", "Vote Successful", iTotalPercent, totalVotes);
-			numAttempts = 0;
+			LogAction(-1, -1, "Extend %t \nExtending current map by \"%d\" minutes.\nPrevious TimeLeft: %s\nNew TimeLeft: %s","Vote Successful", iYesPercent, totalVotes, g_iExtendTime, sOldTimeleft, sTimeleft);
+			PrintToServer("[SM] %t", "Vote Successful", iYesPercent, totalVotes);
+			CPrintToChatAll("{green}[SM]{default} %t", "Vote Successful", iYesPercent, totalVotes);
+			g_iNumAttempts = 0;
 			g_iExtendCount++;
 		}
 	}
 
 	return 0;
+}
+
+Action HandleLimitCommand(int client, int argc, ConVar cvar, const char[] sCommand, const char[] sUnit)
+{
+	if (argc < 1)
+	{
+		CReplyToCommand(client, "{green}[SM] {default}Usage: %s {olive}<%s>", sCommand, sUnit);
+		return Plugin_Handled;
+	}
+
+	char sArg[16];
+	GetCmdArg(1, sArg, sizeof(sArg));
+
+	int value;
+	bool isNegative;
+	if (!ParseValue(sArg, value, isNegative))
+	{
+		CReplyToCommand(client, "{green}[SM] {default}Invalid value.");
+		return Plugin_Handled;
+	}
+
+	if (!CanChangeLimit(client, cvar, value, isNegative))
+		return Plugin_Handled;
+
+	char sName[32];
+	cvar.GetName(sName, sizeof(sName));
+
+	bool isTime = (cvar == g_cvarMpTimeLimit);
+	char sOldTimeleft[128];
+	if (isTime)
+		GenerateTimeleft(sOldTimeleft, sizeof(sOldTimeleft));
+
+	ChangeLimit(cvar, isNegative ? -value : value);
+
+	char sAction[16], sPrep[8];
+	strcopy(sAction, sizeof(sAction), isNegative ? "deducted" : "added");
+	strcopy(sPrep, sizeof(sPrep), isNegative ? "from" : "to");
+
+	CShowActivity2(client, "{green}[SM]{olive} ", "{default}%s %d %s %s \"%s\"", sAction, value, sUnit, sPrep, sName);
+
+	if (isTime)
+	{
+		char sTimeleft[128];
+		GenerateTimeleft(sTimeleft, sizeof(sTimeleft));
+		LogAction(client, -1, "\"%L\" %s \"%d\" %s %s \"%s\"\nPrevious Timeleft: %s\nNew Timeleft: %s", client, sAction, value, sUnit, sPrep, sName, sOldTimeleft, sTimeleft);
+	}
+	else
+		LogAction(client, -1, "\"%L\" %s \"%d\" %s %s \"%s\"", client, sAction, value, sUnit, sPrep, sName);
+
+	return Plugin_Handled;
 }
 
 stock float GetRequiredVoteRatio()
@@ -442,27 +377,20 @@ stock void GenerateTimeleft(char[] sTimeleft, int size)
 		return;
 	}
 
-	char sMinutes[5], sSeconds[5];
-	FormatEx(sMinutes, sizeof(sMinutes), "%s%i", ((TimeLeft / 60) < 10) ? "0" : "", TimeLeft / 60);
-	FormatEx(sSeconds, sizeof(sSeconds), "%s%i", ((TimeLeft % 60) < 10) ? "0" : "", TimeLeft % 60);
-	FormatEx(sTimeleft, size, "%s:%s", sMinutes, sSeconds);
+	FormatEx(sTimeleft, size, "%02d:%02d", TimeLeft / 60, TimeLeft % 60);
 }
 
-stock void GenerateArgs(char[] sArgToParse, int size, char[] sOutput, bool isNegative)
+// Parses "<n>" or "-<n>" into a non-negative value and a sign
+stock bool ParseValue(const char[] sArg, int &value, bool &isNegative)
 {
-	if (isNegative)
-		strcopy(sOutput, size, sArgToParse[1]);
-	else
-		strcopy(sOutput, size, sArgToParse);
-}
+	isNegative = (sArg[0] == '-');
+	int start = isNegative ? 1 : 0;
 
-stock bool ParseValue(const char[] sValue, int &value)
-{
-	// Require the whole string to be a non-negative number
-	if (sValue[0] == '\0' || sValue[0] == '-')
+	// Require the rest to be a whole non-negative number
+	if (sArg[start] == '\0' || sArg[start] == '-')
 		return false;
 
-	if (StringToIntEx(sValue, value) != strlen(sValue))
+	if (StringToIntEx(sArg[start], value) != strlen(sArg[start]))
 		return false;
 
 	return value >= 0;
@@ -479,42 +407,27 @@ stock bool CanChangeLimit(int client, ConVar cvar, int value, bool isNegative)
 		return false;
 	}
 
-	// mp_timelimit can be fractional, so check it as a float
-	if (cvar == g_cvarMpTimeLimit)
-	{
-		float fCurrent = cvar.FloatValue;
-
-		if (fCurrent <= 0.0)
-		{
-			CReplyToCommand(client, "{green}[SM] {default}\"%s\" is 0 (no limit), there is nothing to change.", sName);
-			return false;
-		}
-
-		if (isNegative && fCurrent - float(value) <= 0.0)
-		{
-			CReplyToCommand(client, "{green}[SM] {default}\"%s\" (%.2f) can't be zero or negative.", sName, fCurrent - float(value));
-			return false;
-		}
-
-		return true;
-	}
-
-	int current = cvar.IntValue;
+	// Read as a float for every limit, since mp_timelimit can be fractional
+	bool isTime = (cvar == g_cvarMpTimeLimit);
+	float fCurrent = cvar.FloatValue;
 
 	// Adding to "no limit" would set a limit that may already be exceeded
-	if (current <= 0)
+	if (fCurrent <= 0.0)
 	{
 		CReplyToCommand(client, "{green}[SM] {default}\"%s\" is 0 (no limit), there is nothing to change.", sName);
 		return false;
 	}
 
-	if (isNegative && current - value <= 0)
+	if (isNegative && fCurrent - float(value) <= 0.0)
 	{
-		CReplyToCommand(client, "{green}[SM] {default}\"%s\" (%d) can't be zero or negative.", sName, current - value);
+		if (isTime)
+			CReplyToCommand(client, "{green}[SM] {default}\"%s\" (%.2f) can't be zero or negative.", sName, fCurrent - float(value));
+		else
+			CReplyToCommand(client, "{green}[SM] {default}\"%s\" (%d) can't be zero or negative.", sName, cvar.IntValue - value);
 		return false;
 	}
 
-	if (!isNegative && value > cellmax - current)
+	if (!isNegative && !isTime && value > cellmax - cvar.IntValue)
 	{
 		CReplyToCommand(client, "{green}[SM] {default}Value is too large for \"%s\".", sName);
 		return false;
@@ -523,43 +436,21 @@ stock bool CanChangeLimit(int client, ConVar cvar, int value, bool isNegative)
 	return true;
 }
 
-stock void HandleExtending(ConVar cvar, int iRounds, bool isNegative)
+// Adds a signed amount to a limit; mp_timelimit keeps fractional minutes
+stock void ChangeLimit(ConVar cvar, int delta)
 {
-	if (isNegative)
-		ReduceMap(cvar, iRounds);
+	if (cvar == g_cvarMpTimeLimit)
+		cvar.FloatValue += float(delta);
 	else
-		ExtendMap(cvar, iRounds);
-}
+		cvar.IntValue += delta;
 
-stock void ExtendMap(ConVar cvar, int value)
-{
-	if (cvar == g_cvarMpMaxRounds)
-		g_cvarMpMaxRounds.IntValue += value;
-	else if (cvar == g_cvarMpFragLimit)
-		g_cvarMpFragLimit.IntValue += value;
-	else if (cvar ==g_cvarMpWinLimit)
-		g_cvarMpWinLimit.IntValue += value;
-	else if (cvar == g_cvarMpTimeLimit)
-		g_cvarMpTimeLimit.FloatValue += float(value);
-
-	CancelGameOver();
-}
-
-stock void ReduceMap(ConVar cvar, int value)
-{
-	if (cvar == g_cvarMpMaxRounds)
-		g_cvarMpMaxRounds.IntValue -= value;
-	else if (cvar == g_cvarMpFragLimit)
-		g_cvarMpFragLimit.IntValue -= value;
-	else if (cvar ==g_cvarMpWinLimit)
-		g_cvarMpWinLimit.IntValue -= value;
-	else if (cvar == g_cvarMpTimeLimit)
-		g_cvarMpTimeLimit.FloatValue -= float(value);
+	if (delta >= 0)
+		CancelGameOver();
 }
 
 void CancelGameOver()
 {
-	if (!g_bGameOver)
+	if (!g_bCanCancelGameOver)
 		return;
 
 	// Only undo game over when it actually happened, so normal extends don't reset movement
