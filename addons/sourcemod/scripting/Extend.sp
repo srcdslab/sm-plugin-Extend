@@ -12,6 +12,9 @@
 #define VOTE_NO "###no###"
 #define VOTE_YES "###yes###"
 
+// Largest mp_timelimit we allow; floats are exact up to 2^24 and the engine also converts it to int
+#define MAX_TIMELIMIT_MINUTES 16777216.0
+
 int g_iNumAttempts = 0;
 int g_iExtendCount = 0;
 int g_iExtendTime = 0;
@@ -82,7 +85,13 @@ public void OnPluginStart()
 	{
 		RegAdminCmd("sm_extendmap", Command_Extend, ADMFLAG_GENERIC, "Add more time to mp_timelimit");
 		RegAdminCmd("sm_extend", Command_ExtendVote, ADMFLAG_GENERIC, "sm_extend [time] - Start an extendvote");
-		RegAdminCmd("sm_roundextend", Command_RoundExtend, ADMFLAG_GENERIC, "sm_roundextend - Extend mp_timelimit elapsed time since the start of the round");
+
+		// Relies on the m_fRoundStartTime gamerules prop, which only Counter-Strike games have
+		EngineVersion engine = GetEngineVersion();
+		if (engine == Engine_CSS || engine == Engine_CSGO)
+			RegAdminCmd("sm_roundextend", Command_RoundExtend, ADMFLAG_GENERIC, "sm_roundextend - Extend mp_timelimit elapsed time since the start of the round");
+		else
+			LogMessage("\"sm_roundextend\" is only supported on Counter-Strike games and will be disabled.");
 	}
 	else
 		LogMessage("Failed to find \"mp_timelimit\" console variable, related commands will be disabled.");
@@ -171,9 +180,17 @@ public Action Command_ExtendVote(int client, int argc)
 	g_iExtendTime = g_cvarExtendVoteTime.IntValue;
 	if (argc == 1)
 	{
-		char sArg[64];
+		char sArg[16];
 		GetCmdArg(1, sArg, sizeof(sArg));
-		int Tmp = StringToInt(sArg);
+
+		int Tmp;
+		bool isNegative;
+		if (!ParseValue(sArg, Tmp, isNegative) || isNegative)
+		{
+			CReplyToCommand(client, "{green}[SM] {default}Invalid value.");
+			return Plugin_Handled;
+		}
+
 		int maxDuration = g_cvarExtendVoteMaxDuration.IntValue;
 		if (Tmp > 0)
 			g_iExtendTime = Tmp > maxDuration ? maxDuration : Tmp;
@@ -186,7 +203,9 @@ public Action Command_ExtendVote(int client, int argc)
 	g_fVoteRequired = GetRequiredVoteRatio();
 
 	Menu hVoteMenu = new Menu(Handler_VoteCallback, MenuAction_End|MenuAction_DisplayItem|MenuAction_VoteCancel|MenuAction_VoteEnd);
-	hVoteMenu.SetTitle("Extend map by %d minutes? (%d%% required)", g_iExtendTime, RoundToNearest(100.0 * g_fVoteRequired));
+	char sRequired[16];
+	FormatPercent(g_fVoteRequired, sRequired, sizeof(sRequired));
+	hVoteMenu.SetTitle("Extend map by %d minutes? (%s%% required)", g_iExtendTime, sRequired);
 
 	hVoteMenu.AddItem(VOTE_YES, "Yes");
 	hVoteMenu.AddItem(VOTE_NO, "No");
@@ -266,15 +285,16 @@ public int Handler_VoteCallback(Menu menu, MenuAction action, int param1, int pa
 
 		// votes is now the yes count; the result depends only on it, not on which option won
 		float fYesRatio = float(votes) / float(totalVotes);
-		int iRequiredPercent = RoundToNearest(100.0 * g_fVoteRequired);
-		int iYesPercent = RoundToNearest(100.0 * fYesRatio);
+		char sRequired[16], sYes[16];
+		FormatPercent(g_fVoteRequired, sRequired, sizeof(sRequired));
+		FormatPercent(fYesRatio, sYes, sizeof(sYes));
 
 		// Small epsilon so sums like 0.6 + 0.05 * 2 (0.70000005) still accept exactly 70%
 		if (fYesRatio + 0.0001 < g_fVoteRequired)
 		{
-			LogAction(-1, -1, "Extend %t", "Vote Failed", iRequiredPercent, iYesPercent, totalVotes);
-			PrintToServer("[SM] %t", "Vote Failed", iRequiredPercent, iYesPercent, totalVotes);
-			CPrintToChatAll("{green}[SM]{default} %t", "Vote Failed", iRequiredPercent, iYesPercent, totalVotes);
+			LogAction(-1, -1, "Extend vote failed. %s%% vote required. (Received %s%% of %d votes)", sRequired, sYes, totalVotes);
+			PrintToServer("[SM] Vote failed. %s%% vote required. (Received %s%% of %d votes)", sRequired, sYes, totalVotes);
+			CPrintToChatAll("{green}[SM]{default} Vote failed. %s%% vote required. (Received %s%% of %d votes)", sRequired, sYes, totalVotes);
 			g_iNumAttempts++;
 		}
 		else
@@ -294,9 +314,9 @@ public int Handler_VoteCallback(Menu menu, MenuAction action, int param1, int pa
 
 			char sTimeleft[128];
 			GenerateTimeleft(sTimeleft, sizeof(sTimeleft));
-			LogAction(-1, -1, "Extend %t \nExtending current map by \"%d\" minutes.\nPrevious TimeLeft: %s\nNew TimeLeft: %s","Vote Successful", iYesPercent, totalVotes, g_iExtendTime, sOldTimeleft, sTimeleft);
-			PrintToServer("[SM] %t", "Vote Successful", iYesPercent, totalVotes);
-			CPrintToChatAll("{green}[SM]{default} %t", "Vote Successful", iYesPercent, totalVotes);
+			LogAction(-1, -1, "Extend vote successful. (Received %s%% of %d votes)\nExtending current map by \"%d\" minutes.\nPrevious TimeLeft: %s\nNew TimeLeft: %s", sYes, totalVotes, g_iExtendTime, sOldTimeleft, sTimeleft);
+			PrintToServer("[SM] Vote successful. (Received %s%% of %d votes)", sYes, totalVotes);
+			CPrintToChatAll("{green}[SM]{default} Vote successful. (Received %s%% of %d votes)", sYes, totalVotes);
 			g_iNumAttempts = 0;
 			g_iExtendCount++;
 		}
@@ -368,6 +388,16 @@ stock float GetRequiredVoteRatio()
 	return limit;
 }
 
+// Formats a 0-1 ratio as a percentage with one decimal, dropping a trailing ".0"
+stock void FormatPercent(float ratio, char[] buffer, int size)
+{
+	FormatEx(buffer, size, "%.1f", 100.0 * ratio);
+
+	int len = strlen(buffer);
+	if (len > 2 && StrEqual(buffer[len - 2], ".0"))
+		buffer[len - 2] = '\0';
+}
+
 stock void GenerateTimeleft(char[] sTimeleft, int size)
 {
 	int TimeLeft;
@@ -424,6 +454,12 @@ stock bool CanChangeLimit(int client, ConVar cvar, int value, bool isNegative)
 			CReplyToCommand(client, "{green}[SM] {default}\"%s\" (%.2f) can't be zero or negative.", sName, fCurrent - float(value));
 		else
 			CReplyToCommand(client, "{green}[SM] {default}\"%s\" (%d) can't be zero or negative.", sName, cvar.IntValue - value);
+		return false;
+	}
+
+	if (!isNegative && isTime && fCurrent + float(value) > MAX_TIMELIMIT_MINUTES)
+	{
+		CReplyToCommand(client, "{green}[SM] {default}Value is too large for \"%s\".", sName);
 		return false;
 	}
 
