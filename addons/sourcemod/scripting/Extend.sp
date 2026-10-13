@@ -416,14 +416,24 @@ stock bool ParseValue(const char[] sArg, int &value, bool &isNegative)
 	isNegative = (sArg[0] == '-');
 	int start = isNegative ? 1 : 0;
 
-	// Require the rest to be a whole non-negative number
-	if (sArg[start] == '\0' || sArg[start] == '-')
+	if (sArg[start] == '\0')
 		return false;
 
-	if (StringToIntEx(sArg[start], value) != strlen(sArg[start]))
-		return false;
+	// Accept plain digits only and build the number by hand, so nothing can wrap past cellmax
+	value = 0;
+	for (int i = start; sArg[i] != '\0'; i++)
+	{
+		if (sArg[i] < '0' || sArg[i] > '9')
+			return false;
 
-	return value >= 0;
+		int digit = sArg[i] - '0';
+		if (value > (cellmax - digit) / 10)
+			return false;
+
+		value = value * 10 + digit;
+	}
+
+	return true;
 }
 
 stock bool CanChangeLimit(int client, ConVar cvar, int value, bool isNegative)
