@@ -11,6 +11,7 @@
 
 #define VOTE_NO "###no###"
 #define VOTE_YES "###yes###"
+#define PLUGIN_TAG "{green}[Extend]"
 
 // Largest mp_timelimit we allow; floats are exact up to 2^24 and the engine also converts it to int
 #define MAX_TIMELIMIT_MINUTES 16777216.0
@@ -49,6 +50,7 @@ public void OnPluginStart()
 {
 	LoadTranslations("common.phrases");
 	LoadTranslations("basevotes.phrases");
+	LoadTranslations("extend.phrases");
 
 	g_cvarMpMaxRounds = FindConVar("mp_maxrounds");
 	g_cvarMpFragLimit = FindConVar("mp_fraglimit");
@@ -153,13 +155,13 @@ public Action Command_ExtendVote(int client, int argc)
 {
 	if (!g_cvarExtendVote.BoolValue)
 	{
-		CReplyToCommand(client, "{green}[SM] {default}This feature is currently disabled.");
+		CReplyToCommand(client, "%s {default}%t", PLUGIN_TAG, "Feature Disabled");
 		return Plugin_Handled;
 	}
 
 	if (g_cvarExtendVoteMaxFailedAttempt.IntValue > 0 && g_iNumAttempts >= g_cvarExtendVoteMaxFailedAttempt.IntValue)
 	{
-		CReplyToCommand(client, "{green}[SM] {default}Vote already failed %d time%s. Can't do more extend vote.", g_iNumAttempts, g_iNumAttempts > 1 ? "s" : "");
+		CReplyToCommand(client, "%s {default}%t", PLUGIN_TAG, "Max Failed Votes", g_iNumAttempts);
 		LogAction(-1, -1, "%L Attempting to start another extend vote after %d vote failed.. Clamped!", client, g_iNumAttempts);
 		return Plugin_Handled;
 	}
@@ -167,13 +169,13 @@ public Action Command_ExtendVote(int client, int argc)
 	// Check if all extends are required and if the client can bypass this requirement
 	if (g_cvarRequireAllExtends.BoolValue && AreExtendsRemaining() && !CheckCommandAccess(client, "sm_extend_bypass", ADMFLAG_CHANGEMAP, false))
 	{
-		CReplyToCommand(client, "{green}[SM] {default}Cannot start an extend vote until all mapchooser extends are used.");
+		CReplyToCommand(client, "%s {default}%t", PLUGIN_TAG, "Extends Remaining");
 		return Plugin_Handled;
 	}
 
 	if (IsVoteInProgress())
 	{
-		CReplyToCommand(client, "{green}[SM] {default}%t", "Vote in Progress");
+		CReplyToCommand(client, "%s {default}%t", PLUGIN_TAG, "Vote in Progress");
 		return Plugin_Handled;
 	}
 
@@ -187,7 +189,7 @@ public Action Command_ExtendVote(int client, int argc)
 		bool isNegative;
 		if (!ParseValue(sArg, Tmp, isNegative) || isNegative)
 		{
-			CReplyToCommand(client, "{green}[SM] {default}Invalid value.");
+			CReplyToCommand(client, "%s {default}%t", PLUGIN_TAG, "Invalid Value");
 			return Plugin_Handled;
 		}
 
@@ -222,7 +224,7 @@ public Action Command_ExtendVote(int client, int argc)
 	else
 		strcopy(sTimeleft, sizeof(sTimeleft), "0:00 (This is the last round!)");
 
-	CShowActivity2(client, "{green}[SM]{olive} ", "{default}Initiated an extend vote.");
+	CShowActivity2(client, PLUGIN_TAG ... " ", "{default}%t", "Activity Vote Started");
 	LogAction(client, -1, "\"%L\" Initiated an extend vote. (%d minutes)\nTimeLeft: %s", client, g_iExtendTime, sTimeleft);
 
 	return Plugin_Handled;
@@ -236,7 +238,7 @@ public Action Command_RoundExtend(int client, int argc)
 	// Negative during freeze time, 0 in the first minute of the round
 	if (elapsedMinutes <= 0)
 	{
-		CReplyToCommand(client, "{green}[SM] {default}Less than a minute of the round has elapsed, there is nothing to add.");
+		CReplyToCommand(client, "%s {default}%t", PLUGIN_TAG, "Round Too Short");
 		return Plugin_Handled;
 	}
 
@@ -244,7 +246,7 @@ public Action Command_RoundExtend(int client, int argc)
 		return Plugin_Handled;
 
 	ChangeLimit(g_cvarMpTimeLimit, elapsedMinutes);
-	CPrintToChatAll("{green}[SM]{default} %N added %d minutes to \"mp_timelimit\" based on the current round time elapsed.", client, elapsedMinutes);
+	CPrintToChatAll("%s {default}%t", PLUGIN_TAG, "Round Extended", client, elapsedMinutes);
 	LogAction(client, -1, "\"%L\" added \"%d\" minutes to \"mp_timelimit\" based on the current round time elapsed.", client, elapsedMinutes);
 
 	return Plugin_Handled;
@@ -270,7 +272,7 @@ public int Handler_VoteCallback(Menu menu, MenuAction action, int param1, int pa
 	{
 		LogAction(-1, -1, "No Votes Cast. Extend Vote failed.");
 		PrintToServer("[SM] %t", "No Votes Cast");
-		CPrintToChatAll("{green}[SM] {default}%t", "No Votes Cast");
+		CPrintToChatAll("%s {default}%t", PLUGIN_TAG, "No Votes Cast");
 	}
 	else if (action == MenuAction_VoteEnd)
 	{
@@ -294,7 +296,7 @@ public int Handler_VoteCallback(Menu menu, MenuAction action, int param1, int pa
 		{
 			LogAction(-1, -1, "Extend vote failed. %s%% vote required. (Received %s%% of %d votes)", sRequired, sYes, totalVotes);
 			PrintToServer("[SM] Vote failed. %s%% vote required. (Received %s%% of %d votes)", sRequired, sYes, totalVotes);
-			CPrintToChatAll("{green}[SM]{default} Vote failed. %s%% vote required. (Received %s%% of %d votes)", sRequired, sYes, totalVotes);
+			CPrintToChatAll("%s {default}%t", PLUGIN_TAG, "Extend Vote Failed", sRequired, sYes, totalVotes);
 			g_iNumAttempts++;
 		}
 		else
@@ -303,7 +305,7 @@ public int Handler_VoteCallback(Menu menu, MenuAction action, int param1, int pa
 			if (!CanChangeLimit(0, g_cvarMpTimeLimit, g_iExtendTime, false))
 			{
 				LogAction(-1, -1, "Extend vote passed, but \"mp_timelimit\" can no longer be extended. Extension skipped.");
-				CPrintToChatAll("{green}[SM]{default} The vote passed, but \"mp_timelimit\" can no longer be extended.");
+				CPrintToChatAll("%s {default}%t", PLUGIN_TAG, "Extend Vote Passed No Limit");
 				return 0;
 			}
 
@@ -316,7 +318,7 @@ public int Handler_VoteCallback(Menu menu, MenuAction action, int param1, int pa
 			GenerateTimeleft(sTimeleft, sizeof(sTimeleft));
 			LogAction(-1, -1, "Extend vote successful. (Received %s%% of %d votes)\nExtending current map by \"%d\" minutes.\nPrevious TimeLeft: %s\nNew TimeLeft: %s", sYes, totalVotes, g_iExtendTime, sOldTimeleft, sTimeleft);
 			PrintToServer("[SM] Vote successful. (Received %s%% of %d votes)", sYes, totalVotes);
-			CPrintToChatAll("{green}[SM]{default} Vote successful. (Received %s%% of %d votes)", sYes, totalVotes);
+			CPrintToChatAll("%s {default}%t", PLUGIN_TAG, "Extend Vote Successful", sYes, totalVotes);
 			g_iNumAttempts = 0;
 			g_iExtendCount++;
 		}
@@ -329,7 +331,7 @@ Action HandleLimitCommand(int client, int argc, ConVar cvar, const char[] sComma
 {
 	if (argc < 1)
 	{
-		CReplyToCommand(client, "{green}[SM] {default}Usage: %s {olive}<%s>", sCommand, sUnit);
+		CReplyToCommand(client, "%s {default}%t", PLUGIN_TAG, "Command Usage", sCommand, sUnit);
 		return Plugin_Handled;
 	}
 
@@ -340,7 +342,7 @@ Action HandleLimitCommand(int client, int argc, ConVar cvar, const char[] sComma
 	bool isNegative;
 	if (!ParseValue(sArg, value, isNegative))
 	{
-		CReplyToCommand(client, "{green}[SM] {default}Invalid value.");
+		CReplyToCommand(client, "%s {default}%t", PLUGIN_TAG, "Invalid Value");
 		return Plugin_Handled;
 	}
 
@@ -361,7 +363,7 @@ Action HandleLimitCommand(int client, int argc, ConVar cvar, const char[] sComma
 	strcopy(sAction, sizeof(sAction), isNegative ? "deducted" : "added");
 	strcopy(sPrep, sizeof(sPrep), isNegative ? "from" : "to");
 
-	CShowActivity2(client, "{green}[SM]{olive} ", "{default}%s %d %s %s \"%s\"", sAction, value, sUnit, sPrep, sName);
+	CShowActivity2(client, PLUGIN_TAG ... " ", "{default}%t", isNegative ? "Activity Limit Deducted" : "Activity Limit Added", value, sUnit, sName);
 
 	if (isTime)
 	{
@@ -443,7 +445,7 @@ stock bool CanChangeLimit(int client, ConVar cvar, int value, bool isNegative)
 
 	if (value < 0)
 	{
-		CReplyToCommand(client, "{green}[SM] {default}Invalid value.");
+		CReplyToCommand(client, "%s {default}%t", PLUGIN_TAG, "Invalid Value");
 		return false;
 	}
 
@@ -454,28 +456,28 @@ stock bool CanChangeLimit(int client, ConVar cvar, int value, bool isNegative)
 	// Adding to "no limit" would set a limit that may already be exceeded
 	if (fCurrent <= 0.0)
 	{
-		CReplyToCommand(client, "{green}[SM] {default}\"%s\" is 0 (no limit), there is nothing to change.", sName);
+		CReplyToCommand(client, "%s {default}%t", PLUGIN_TAG, "Limit Not Set", sName);
 		return false;
 	}
 
 	if (isNegative && fCurrent - float(value) <= 0.0)
 	{
 		if (isTime)
-			CReplyToCommand(client, "{green}[SM] {default}\"%s\" (%.2f) can't be zero or negative.", sName, fCurrent - float(value));
+			CReplyToCommand(client, "%s {default}%t", PLUGIN_TAG, "Time Limit Below Zero", sName, fCurrent - float(value));
 		else
-			CReplyToCommand(client, "{green}[SM] {default}\"%s\" (%d) can't be zero or negative.", sName, cvar.IntValue - value);
+			CReplyToCommand(client, "%s {default}%t", PLUGIN_TAG, "Limit Below Zero", sName, cvar.IntValue - value);
 		return false;
 	}
 
 	if (!isNegative && isTime && fCurrent + float(value) > MAX_TIMELIMIT_MINUTES)
 	{
-		CReplyToCommand(client, "{green}[SM] {default}Value is too large for \"%s\".", sName);
+		CReplyToCommand(client, "%s {default}%t", PLUGIN_TAG, "Value Too Large", sName);
 		return false;
 	}
 
 	if (!isNegative && !isTime && value > cellmax - cvar.IntValue)
 	{
-		CReplyToCommand(client, "{green}[SM] {default}Value is too large for \"%s\".", sName);
+		CReplyToCommand(client, "%s {default}%t", PLUGIN_TAG, "Value Too Large", sName);
 		return false;
 	}
 

@@ -1,0 +1,166 @@
+"Phrases"
+{
+	"Feature Disabled"
+	{
+		"en"			"Extend votes are currently disabled."
+		"fr"			"Les votes de prolongation sont actuellement désactivés."
+		"ru"			"Голосования за продление сейчас отключены."
+		"chi"			"延长投票当前已禁用。"
+		"zho"			"延長投票目前已停用。"
+	}
+
+	"Max Failed Votes"
+	{
+		"#format"		"{1:d}"
+		"en"			"The extend vote has already failed {1} time(s). No more extend votes can be started."
+		"fr"			"Le vote de prolongation a déjà échoué {1} fois. Aucun autre vote de prolongation ne peut être lancé."
+		"ru"			"Количество неудачных голосований за продление: {1}. Новые голосования за продление запустить нельзя."
+		"chi"			"延长投票已失败 {1} 次，无法再发起延长投票。"
+		"zho"			"延長投票已失敗 {1} 次，無法再發起延長投票。"
+	}
+
+	"Extends Remaining"
+	{
+		"en"			"Cannot start an extend vote until all extends are used."
+		"fr"			"Impossible de lancer un vote de prolongation tant que toutes les prolongations n'ont pas été utilisées."
+		"ru"			"Нельзя начать голосование за продление, пока не использованы все продления."
+		"chi"			"在所有延长次数用完之前，无法发起延长投票。"
+		"zho"			"在所有延長次數用完之前，無法發起延長投票。"
+	}
+
+	"Invalid Value"
+	{
+		"en"			"Invalid value specified."
+		"fr"			"Valeur spécifiée invalide."
+		"ru"			"Указано недопустимое значение."
+		"chi"			"指定的数值无效。"
+		"zho"			"指定的數值無效。"
+	}
+
+	"Command Usage"
+	{
+		"#format"		"{1:s},{2:s}"
+		"en"			"Usage: {1} {olive}<{2}>"
+		"fr"			"Utilisation : {1} {olive}<{2}>"
+		"ru"			"Использование: {1} {olive}<{2}>"
+		"chi"			"用法：{1} {olive}<{2}>"
+		"zho"			"用法：{1} {olive}<{2}>"
+	}
+
+	"Round Too Short"
+	{
+		"en"			"Failed to adjust round time because less than a minute of the round has elapsed."
+		"fr"			"Impossible d'ajuster le temps de la manche car moins d'une minute s'est écoulée depuis son début."
+		"ru"			"Не удалось изменить время раунда: с начала раунда прошло меньше минуты."
+		"chi"			"无法调整回合时间，因为本回合开始还不到一分钟。"
+		"zho"			"無法調整回合時間，因為本回合開始還不到一分鐘。"
+	}
+
+	"Round Extended"
+	{
+		"#format"		"{1:N},{2:d}"
+		"en"			"{1} added {2} minutes to \"mp_timelimit\" based on the current round time elapsed."
+		"fr"			"{1} a ajouté {2} minutes à \"mp_timelimit\" en fonction du temps écoulé de la manche en cours."
+		"ru"			"{1} добавил(а) {2} мин. к \"mp_timelimit\" с учётом времени, прошедшего в текущем раунде."
+		"chi"			"{1} 根据当前回合已进行的时间，为 \"mp_timelimit\" 增加了 {2} 分钟。"
+		"zho"			"{1} 根據目前回合已進行的時間，為 \"mp_timelimit\" 增加了 {2} 分鐘。"
+	}
+
+	"Extend Vote Failed"
+	{
+		"#format"		"{1:s},{2:s},{3:d}"
+		"en"			"Extend vote failed. {1}%% vote required. (Received {2}%% of {3} votes)"
+		"fr"			"Le vote de prolongation a échoué. {1}%% des votes requis. ({2}%% reçus sur {3} votes)"
+		"ru"			"Голосование за продление не прошло. Требуется {1}%% голосов. (Получено {2}%%, всего голосов: {3})"
+		"chi"			"延长投票失败。需要 {1}%% 的票数。（共 {3} 票，获得 {2}%%）"
+		"zho"			"延長投票失敗。需要 {1}%% 的票數。（共 {3} 票，獲得 {2}%%）"
+	}
+
+	"Extend Vote Successful"
+	{
+		"#format"		"{1:s},{2:d}"
+		"en"			"Extend vote successful. (Received {1}%% of {2} votes)"
+		"fr"			"Le vote de prolongation a réussi. ({1}%% reçus sur {2} votes)"
+		"ru"			"Голосование за продление прошло успешно. (Получено {1}%%, всего голосов: {2})"
+		"chi"			"延长投票成功。（共 {2} 票，获得 {1}%%）"
+		"zho"			"延長投票成功。（共 {2} 票，獲得 {1}%%）"
+	}
+
+	"Extend Vote Passed No Limit"
+	{
+		"en"			"The vote passed but \"mp_timelimit\" cannot be extended."
+		"fr"			"Le vote a réussi, mais \"mp_timelimit\" ne peut pas être prolongé."
+		"ru"			"Голосование прошло, но \"mp_timelimit\" нельзя продлить."
+		"chi"			"投票已通过，但 \"mp_timelimit\" 无法延长。"
+		"zho"			"投票已通過，但 \"mp_timelimit\" 無法延長。"
+	}
+
+	"Limit Not Set"
+	{
+		"#format"		"{1:s}"
+		"en"			"Cannot change \"{1}\" because it is set to 0 (no limit)."
+		"fr"			"Impossible de modifier \"{1}\" car sa valeur est 0 (aucune limite)."
+		"ru"			"Нельзя изменить \"{1}\", так как его значение равно 0 (без ограничения)."
+		"chi"			"无法更改 \"{1}\"，因为它被设置为 0（无限制）。"
+		"zho"			"無法變更 \"{1}\"，因為它被設定為 0（無限制）。"
+	}
+
+	"Limit Below Zero"
+	{
+		"#format"		"{1:s},{2:d}"
+		"en"			"\"{1}\" ({2}) can't be zero or negative."
+		"fr"			"\"{1}\" ({2}) ne peut pas être nul ou négatif."
+		"ru"			"\"{1}\" ({2}) не может быть нулевым или отрицательным."
+		"chi"			"\"{1}\" ({2}) 不能为零或负数。"
+		"zho"			"\"{1}\" ({2}) 不能為零或負數。"
+	}
+
+	"Time Limit Below Zero"
+	{
+		"#format"		"{1:s},{2:.2f}"
+		"en"			"\"{1}\" ({2}) can't be zero or negative."
+		"fr"			"\"{1}\" ({2}) ne peut pas être nul ou négatif."
+		"ru"			"\"{1}\" ({2}) не может быть нулевым или отрицательным."
+		"chi"			"\"{1}\" ({2}) 不能为零或负数。"
+		"zho"			"\"{1}\" ({2}) 不能為零或負數。"
+	}
+
+	"Value Too Large"
+	{
+		"#format"		"{1:s}"
+		"en"			"Value is too large for \"{1}\"."
+		"fr"			"La valeur est trop grande pour \"{1}\"."
+		"ru"			"Слишком большое значение для \"{1}\"."
+		"chi"			"\"{1}\" 的数值过大。"
+		"zho"			"\"{1}\" 的數值過大。"
+	}
+
+	"Activity Vote Started"
+	{
+		"en"			"Initiated an extend vote."
+		"fr"			"A lancé un vote de prolongation."
+		"ru"			"Начал(а) голосование за продление."
+		"chi"			"发起了延长投票。"
+		"zho"			"發起了延長投票。"
+	}
+
+	"Activity Limit Added"
+	{
+		"#format"		"{1:d},{2:s},{3:s}"
+		"en"			"added {1} {2} to \"{3}\""
+		"fr"			"a ajouté {1} {2} à \"{3}\""
+		"ru"			"добавил(а) {1} {2} к \"{3}\""
+		"chi"			"为 \"{3}\" 增加了 {1} {2}"
+		"zho"			"為 \"{3}\" 增加了 {1} {2}"
+	}
+
+	"Activity Limit Deducted"
+	{
+		"#format"		"{1:d},{2:s},{3:s}"
+		"en"			"deducted {1} {2} from \"{3}\""
+		"fr"			"a retiré {1} {2} de \"{3}\""
+		"ru"			"вычел(а) {1} {2} из \"{3}\""
+		"chi"			"从 \"{3}\" 中扣除了 {1} {2}"
+		"zho"			"從 \"{3}\" 中扣除了 {1} {2}"
+	}
+}
