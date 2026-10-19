@@ -10,6 +10,10 @@
 				{
 					"signature"	"g_fGameOver"
 				}
+				"linux64"
+				{
+					"signature"	"g_fGameOver"
+				}
 			}
 		}
 
@@ -19,6 +23,7 @@
 			{
 				"library"	"server"
 				"linux"		"@g_fGameOver"
+				"linux64"		"@g_fGameOver"
 			}
 		}
 	}
