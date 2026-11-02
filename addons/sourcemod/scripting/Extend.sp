@@ -42,7 +42,7 @@ public Plugin myinfo =
 	name        = "Map Extend Tools",
 	author      = "Obus, BotoX, .Rushaway, koen",
 	description = "Adds map extension commands.",
-	version     = "1.4.1",
+	version     = "1.4.2",
 	url         = ""
 };
 
