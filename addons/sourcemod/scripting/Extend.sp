@@ -42,7 +42,7 @@ public Plugin myinfo =
 	name        = "Map Extend Tools",
 	author      = "Obus, BotoX, .Rushaway, koen",
 	description = "Adds map extension commands.",
-	version     = "1.4.2",
+	version     = "1.4.3",
 	url         = ""
 };
 
@@ -133,22 +133,22 @@ public void OnMapEnd()
 
 public Action Command_Extend_Rounds(int client, int argc)
 {
-	return HandleLimitCommand(client, argc, g_cvarMpMaxRounds, "sm_extend_rounds", "rounds");
+	return HandleLimitCommand(client, argc, g_cvarMpMaxRounds, "sm_extend_rounds", "rounds", "Unit Round", "Unit Rounds");
 }
 
 public Action Command_Extend_Frags(int client, int argc)
 {
-	return HandleLimitCommand(client, argc, g_cvarMpFragLimit, "sm_extend_frags", "frags");
+	return HandleLimitCommand(client, argc, g_cvarMpFragLimit, "sm_extend_frags", "frags", "Unit Frag", "Unit Frags");
 }
 
 public Action Command_Extend_Wins(int client, int argc)
 {
-	return HandleLimitCommand(client, argc, g_cvarMpWinLimit, "sm_extend_wins", "wins");
+	return HandleLimitCommand(client, argc, g_cvarMpWinLimit, "sm_extend_wins", "wins", "Unit Win", "Unit Wins");
 }
 
 public Action Command_Extend(int client, int argc)
 {
-	return HandleLimitCommand(client, argc, g_cvarMpTimeLimit, "sm_extendmap", "minutes");
+	return HandleLimitCommand(client, argc, g_cvarMpTimeLimit, "sm_extendmap", "minutes", "Unit Minute", "Unit Minutes");
 }
 
 public Action Command_ExtendVote(int client, int argc)
@@ -334,7 +334,7 @@ public int Handler_VoteCallback(Menu menu, MenuAction action, int param1, int pa
 	return 0;
 }
 
-Action HandleLimitCommand(int client, int argc, ConVar cvar, const char[] sCommand, const char[] sUnit)
+Action HandleLimitCommand(int client, int argc, ConVar cvar, const char[] sCommand, const char[] sUnit, const char[] sUnitOne, const char[] sUnitMany)
 {
 	if (argc < 1)
 	{
@@ -373,7 +373,7 @@ Action HandleLimitCommand(int client, int argc, ConVar cvar, const char[] sComma
 	strcopy(sAction, sizeof(sAction), isNegative ? "deducted" : "added");
 	strcopy(sPrep, sizeof(sPrep), isNegative ? "from" : "to");
 
-	CShowActivity2(client, PLUGIN_TAG ... " ", "{default}%t", isNegative ? "Activity Limit Deducted" : "Activity Limit Added", value, sUnit, sName);
+	CShowActivity2(client, PLUGIN_TAG ... " ", "{default}%t", isNegative ? "Activity Limit Deducted" : "Activity Limit Added", value, value == 1 ? sUnitOne : sUnitMany, sName);
 
 	if (isTime)
 	{

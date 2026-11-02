@@ -204,11 +204,11 @@
 
 	"Activity Limit Added"
 	{
-		"#format"		"{1:d},{2:s},{3:s}"
+		"#format"		"{1:d},{2:t},{3:s}"
 		"en"			"added {1} {2} to \"{3}\""
 		"fr"			"a ajouté {1} {2} à \"{3}\""
 		"ru"			"добавил(а) {1} {2} к \"{3}\""
-		"chi"			"为 \"{3}\" 增加了 {1} {2}"
+		"chi"			"增加了 {1} {2}（\"{3}\"）"
 		"zho"			"為 \"{3}\" 增加了 {1} {2}"
 		"es"			"añadió {1} {2} a \"{3}\""
 		"de"			"hat {1} {2} zu \"{3}\" hinzugefügt"
@@ -217,14 +217,102 @@
 
 	"Activity Limit Deducted"
 	{
-		"#format"		"{1:d},{2:s},{3:s}"
+		"#format"		"{1:d},{2:t},{3:s}"
 		"en"			"deducted {1} {2} from \"{3}\""
 		"fr"			"a retiré {1} {2} de \"{3}\""
 		"ru"			"вычел(а) {1} {2} из \"{3}\""
-		"chi"			"从 \"{3}\" 中扣除了 {1} {2}"
+		"chi"			"扣除了 {1} {2}（\"{3}\"）"
 		"zho"			"從 \"{3}\" 中扣除了 {1} {2}"
 		"es"			"restó {1} {2} de \"{3}\""
 		"de"			"hat {1} {2} von \"{3}\" abgezogen"
 		"pt"			"subtraiu {1} {2} de \"{3}\""
+	}
+
+	"Unit Round"
+	{
+		"en"			"round"
+		"fr"			"round"
+		"ru"			"раунд"
+		"chi"			"回合"
+		"es"			"ronda"
+		"de"			"Runde"
+		"pt"			"rodada"
+	}
+
+	"Unit Rounds"
+	{
+		"en"			"rounds"
+		"fr"			"rounds"
+		"ru"			"раунд(ов)"
+		"chi"			"回合"
+		"es"			"rondas"
+		"de"			"Runden"
+		"pt"			"rodadas"
+	}
+
+	"Unit Frag"
+	{
+		"en"			"frag"
+		"fr"			"frag"
+		"ru"			"фраг"
+		"chi"			"次击杀"
+		"es"			"frag"
+		"de"			"Frag"
+		"pt"			"frag"
+	}
+
+	"Unit Frags"
+	{
+		"en"			"frags"
+		"fr"			"frags"
+		"ru"			"фраг(ов)"
+		"chi"			"次击杀"
+		"es"			"frags"
+		"de"			"Frags"
+		"pt"			"frags"
+	}
+
+	"Unit Win"
+	{
+		"en"			"win"
+		"fr"			"victoire"
+		"ru"			"победу"
+		"chi"			"场胜利"
+		"es"			"victoria"
+		"de"			"Sieg"
+		"pt"			"vitória"
+	}
+
+	"Unit Wins"
+	{
+		"en"			"wins"
+		"fr"			"victoires"
+		"ru"			"побед(ы)"
+		"chi"			"场胜利"
+		"es"			"victorias"
+		"de"			"Siege"
+		"pt"			"vitórias"
+	}
+
+	"Unit Minute"
+	{
+		"en"			"minute"
+		"fr"			"minute"
+		"ru"			"мин."
+		"chi"			"分钟"
+		"es"			"minuto"
+		"de"			"Minute"
+		"pt"			"minuto"
+	}
+
+	"Unit Minutes"
+	{
+		"en"			"minutes"
+		"fr"			"minutes"
+		"ru"			"мин."
+		"chi"			"分钟"
+		"es"			"minutos"
+		"de"			"Minuten"
+		"pt"			"minutos"
 	}
 }
