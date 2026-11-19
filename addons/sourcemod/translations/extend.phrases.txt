@@ -10,6 +10,11 @@
 		"es"			"Las votaciones de extensión están desactivadas actualmente."
 		"de"			"Verlängerungsabstimmungen sind derzeit deaktiviert."
 		"pt"			"As votações de extensão estão desativadas no momento."
+		"pl"			"Głosowania o przedłużenie są obecnie wyłączone."
+		"tr"			"Uzatma oylamaları şu anda devre dışı."
+		"it"			"Le votazioni per l'estensione sono attualmente disabilitate."
+		"ua"			"Голосування за продовження зараз вимкнені."
+		"cze"			"Hlasování o prodloužení jsou momentálně vypnutá."
 	}
 
 	"Max Failed Votes"
@@ -23,6 +28,11 @@
 		"es"			"La votación de extensión ya ha fallado {1} vez/veces. No se pueden iniciar más votaciones de extensión."
 		"de"			"Die Verlängerungsabstimmung ist bereits {1}-mal gescheitert. Es können keine weiteren Verlängerungsabstimmungen gestartet werden."
 		"pt"			"A votação de extensão já falhou {1} vez(es). Não é possível iniciar mais votações de extensão."
+		"pl"			"Głosowanie o przedłużenie nie powiodło się już {1} raz(y). Nie można rozpocząć kolejnych głosowań."
+		"tr"			"Uzatma oylaması şimdiden {1} kez başarısız oldu. Daha fazla uzatma oylaması başlatılamaz."
+		"it"			"La votazione per l'estensione è già fallita {1} volta/e. Non è possibile avviare altre votazioni."
+		"ua"			"Голосування за продовження вже провалилося {1} раз(ів). Нові голосування запустити не можна."
+		"cze"			"Hlasování o prodloužení již selhalo {1}krát. Další hlasování nelze zahájit."
 	}
 
 	"Extends Remaining"
@@ -35,6 +45,11 @@
 		"es"			"No se puede iniciar una votación de extensión hasta que se usen todas las extensiones."
 		"de"			"Eine Verlängerungsabstimmung ist erst möglich, wenn alle Verlängerungen aufgebraucht sind."
 		"pt"			"Não é possível iniciar uma votação de extensão até que todas as extensões sejam usadas."
+		"pl"			"Nie można rozpocząć głosowania o przedłużenie, dopóki nie zostaną wykorzystane wszystkie przedłużenia."
+		"tr"			"Tüm uzatmalar kullanılana kadar uzatma oylaması başlatılamaz."
+		"it"			"Non è possibile avviare una votazione per l'estensione finché non sono state usate tutte le estensioni."
+		"ua"			"Не можна почати голосування за продовження, доки не використано всі продовження."
+		"cze"			"Hlasování o prodloužení nelze zahájit, dokud nejsou využita všechna prodloužení."
 	}
 
 	"Invalid Value"
@@ -47,6 +62,11 @@
 		"es"			"Valor especificado no válido."
 		"de"			"Ungültiger Wert angegeben."
 		"pt"			"Valor especificado inválido."
+		"pl"			"Podano nieprawidłową wartość."
+		"tr"			"Geçersiz değer belirtildi."
+		"it"			"Valore specificato non valido."
+		"ua"			"Указано недопустиме значення."
+		"cze"			"Zadána neplatná hodnota."
 	}
 
 	"Command Usage"
@@ -60,6 +80,11 @@
 		"es"			"Uso: {1} {olive}<{2}>"
 		"de"			"Verwendung: {1} {olive}<{2}>"
 		"pt"			"Uso: {1} {olive}<{2}>"
+		"pl"			"Użycie: {1} {olive}<{2}>"
+		"tr"			"Kullanım: {1} {olive}<{2}>"
+		"it"			"Uso: {1} {olive}<{2}>"
+		"ua"			"Використання: {1} {olive}<{2}>"
+		"cze"			"Použití: {1} {olive}<{2}>"
 	}
 
 	"Round Too Short"
@@ -72,6 +97,11 @@
 		"es"			"No se pudo ajustar el tiempo de la ronda porque ha transcurrido menos de un minuto."
 		"de"			"Die Rundenzeit konnte nicht angepasst werden, da weniger als eine Minute der Runde vergangen ist."
 		"pt"			"Não foi possível ajustar o tempo da rodada porque passou menos de um minuto desde o início."
+		"pl"			"Nie udało się zmienić czasu rundy, ponieważ upłynęło mniej niż minuta od jej rozpoczęcia."
+		"tr"			"Turun başlamasının üzerinden bir dakikadan az geçtiği için tur süresi ayarlanamadı."
+		"it"			"Impossibile modificare il tempo del round perché è trascorso meno di un minuto."
+		"ua"			"Не вдалося змінити час раунду: з початку раунду минуло менше хвилини."
+		"cze"			"Čas kola nelze upravit, protože od jeho začátku uplynula méně než minuta."
 	}
 
 	"Round Extended"
@@ -85,6 +115,11 @@
 		"es"			"{1} añadió {2} minutos a \"mp_timelimit\" según el tiempo transcurrido de la ronda actual."
 		"de"			"{1} hat basierend auf der bisherigen Rundenzeit {2} Minuten zu \"mp_timelimit\" hinzugefügt."
 		"pt"			"{1} adicionou {2} minutos a \"mp_timelimit\" com base no tempo decorrido da rodada atual."
+		"pl"			"{1} dodał(a) {2} min do \"mp_timelimit\" na podstawie czasu bieżącej rundy."
+		"tr"			"{1}, mevcut turun geçen süresine göre \"mp_timelimit\" değerine {2} dakika ekledi."
+		"it"			"{1} ha aggiunto {2} minuti a \"mp_timelimit\" in base al tempo trascorso del round attuale."
+		"ua"			"{1} додав(ла) {2} хв. до \"mp_timelimit\" з урахуванням часу, що минув у поточному раунді."
+		"cze"			"{1} přidal(a) {2} min. k \"mp_timelimit\" podle uplynulého času aktuálního kola."
 	}
 
 	"Vote Menu Title"
@@ -98,6 +133,11 @@
 		"es"			"¿Extender el mapa {1} minutos? ({2}%% requerido)"
 		"de"			"Map um {1} Minuten verlängern? ({2}%% benötigt)"
 		"pt"			"Estender o mapa em {1} minutos? ({2}%% necessário)"
+		"pl"			"Przedłużyć mapę o {1} min? (Wymagane {2}%%)"
+		"tr"			"Harita {1} dakika uzatılsın mı? ({2}%% gerekli)"
+		"it"			"Estendere la mappa di {1} minuti? (richiesto {2}%%)"
+		"ua"			"Продовжити мапу на {1} хв.? (Потрібно {2}%%)"
+		"cze"			"Prodloužit mapu o {1} min.? (Vyžadováno {2}%%)"
 	}
 
 	"Extend Vote Failed"
@@ -111,6 +151,11 @@
 		"es"			"La votación de extensión ha fallado. Se requiere {1}%% de votos. (Recibido {2}%% de {3} votos)"
 		"de"			"Verlängerungsabstimmung gescheitert. {1}%% der Stimmen benötigt. ({2}%% von {3} Stimmen erhalten)"
 		"pt"			"A votação de extensão falhou. {1}%% dos votos necessários. (Recebeu {2}%% de {3} votos)"
+		"pl"			"Głosowanie o przedłużenie nie powiodło się. Wymagane {1}%% głosów. (Otrzymano {2}%% z {3} głosów)"
+		"tr"			"Uzatma oylaması başarısız oldu. Oyların {1}%% gerekli. ({3} oyun {2}%% alındı)"
+		"it"			"Votazione per l'estensione fallita. Richiesto il {1}%% dei voti. (Ricevuto il {2}%% su {3} voti)"
+		"ua"			"Голосування за продовження провалилося. Потрібно {1}%% голосів. (Отримано {2}%% із {3} голосів)"
+		"cze"			"Hlasování o prodloužení selhalo. Vyžadováno {1}%% hlasů. (Získáno {2}%% z {3} hlasů)"
 	}
 
 	"Extend Vote Successful"
@@ -124,6 +169,11 @@
 		"es"			"La votación de extensión ha sido aprobada. (Recibido {1}%% de {2} votos)"
 		"de"			"Verlängerungsabstimmung erfolgreich. ({1}%% von {2} Stimmen erhalten)"
 		"pt"			"A votação de extensão foi aprovada. (Recebeu {1}%% de {2} votos)"
+		"pl"			"Głosowanie o przedłużenie zakończone sukcesem. (Otrzymano {1}%% z {2} głosów)"
+		"tr"			"Uzatma oylaması başarılı. ({2} oyun {1}%% alındı)"
+		"it"			"Votazione per l'estensione riuscita. (Ricevuto il {1}%% su {2} voti)"
+		"ua"			"Голосування за продовження пройшло успішно. (Отримано {1}%% із {2} голосів)"
+		"cze"			"Hlasování o prodloužení bylo úspěšné. (Získáno {1}%% z {2} hlasů)"
 	}
 
 	"Extend Vote Passed No Limit"
@@ -136,6 +186,11 @@
 		"es"			"La votación fue aprobada, pero \"mp_timelimit\" no se puede extender."
 		"de"			"Die Abstimmung war erfolgreich, aber \"mp_timelimit\" kann nicht verlängert werden."
 		"pt"			"A votação foi aprovada, mas \"mp_timelimit\" não pode ser estendido."
+		"pl"			"Głosowanie zakończyło się sukcesem, ale \"mp_timelimit\" nie może zostać przedłużony."
+		"tr"			"Oylama geçti ancak \"mp_timelimit\" uzatılamıyor."
+		"it"			"La votazione è passata ma \"mp_timelimit\" non può essere esteso."
+		"ua"			"Голосування пройшло, але \"mp_timelimit\" не можна продовжити."
+		"cze"			"Hlasování prošlo, ale \"mp_timelimit\" nelze prodloužit."
 	}
 
 	"Limit Not Set"
@@ -149,6 +204,11 @@
 		"es"			"No se puede cambiar \"{1}\" porque está en 0 (sin límite)."
 		"de"			"\"{1}\" kann nicht geändert werden, da es auf 0 (kein Limit) steht."
 		"pt"			"Não é possível alterar \"{1}\" porque está definido como 0 (sem limite)."
+		"pl"			"Nie można zmienić \"{1}\", ponieważ ma wartość 0 (brak limitu)."
+		"tr"			"\"{1}\" değeri 0 (limitsiz) olduğu için değiştirilemez."
+		"it"			"Impossibile modificare \"{1}\" perché è impostato a 0 (nessun limite)."
+		"ua"			"Не можна змінити \"{1}\", бо його значення дорівнює 0 (без обмеження)."
+		"cze"			"Nelze změnit \"{1}\", protože je nastaveno na 0 (bez limitu)."
 	}
 
 	"Limit Below Zero"
@@ -162,6 +222,11 @@
 		"es"			"\"{1}\" ({2}) no puede ser cero ni negativo."
 		"de"			"\"{1}\" ({2}) darf nicht null oder negativ sein."
 		"pt"			"\"{1}\" ({2}) não pode ser zero ou negativo."
+		"pl"			"\"{1}\" ({2}) nie może wynosić zero ani być ujemne."
+		"tr"			"\"{1}\" ({2}) sıfır veya negatif olamaz."
+		"it"			"\"{1}\" ({2}) non può essere zero o negativo."
+		"ua"			"\"{1}\" ({2}) не може бути нульовим або від'ємним."
+		"cze"			"\"{1}\" ({2}) nemůže být nula ani záporné."
 	}
 
 	"Time Limit Below Zero"
@@ -175,6 +240,11 @@
 		"es"			"\"{1}\" ({2}) no puede ser cero ni negativo."
 		"de"			"\"{1}\" ({2}) darf nicht null oder negativ sein."
 		"pt"			"\"{1}\" ({2}) não pode ser zero ou negativo."
+		"pl"			"\"{1}\" ({2}) nie może wynosić zero ani być ujemne."
+		"tr"			"\"{1}\" ({2}) sıfır veya negatif olamaz."
+		"it"			"\"{1}\" ({2}) non può essere zero o negativo."
+		"ua"			"\"{1}\" ({2}) не може бути нульовим або від'ємним."
+		"cze"			"\"{1}\" ({2}) nemůže být nula ani záporné."
 	}
 
 	"Value Too Large"
@@ -188,6 +258,11 @@
 		"es"			"El valor es demasiado grande para \"{1}\"."
 		"de"			"Der Wert ist zu groß für \"{1}\"."
 		"pt"			"O valor é grande demais para \"{1}\"."
+		"pl"			"Wartość jest zbyt duża dla \"{1}\"."
+		"tr"			"Değer \"{1}\" için çok büyük."
+		"it"			"Il valore è troppo grande per \"{1}\"."
+		"ua"			"Занадто велике значення для \"{1}\"."
+		"cze"			"Hodnota je příliš velká pro \"{1}\"."
 	}
 
 	"Activity Vote Started"
@@ -200,6 +275,11 @@
 		"es"			"Inició una votación de extensión."
 		"de"			"Hat eine Verlängerungsabstimmung gestartet."
 		"pt"			"Iniciou uma votação de extensão."
+		"pl"			"Rozpoczął(-ęła) głosowanie o przedłużenie."
+		"tr"			"Uzatma oylaması başlattı."
+		"it"			"Ha avviato una votazione per l'estensione."
+		"ua"			"Розпочав(ла) голосування за продовження."
+		"cze"			"Zahájil(a) hlasování o prodloužení."
 	}
 
 	"Activity Limit Added"
@@ -213,6 +293,11 @@
 		"es"			"añadió {1} {2} a \"{3}\""
 		"de"			"hat {1} {2} zu \"{3}\" hinzugefügt"
 		"pt"			"adicionou {1} {2} a \"{3}\""
+		"pl"			"dodał(a) {1} {2} do \"{3}\""
+		"tr"			"\"{3}\" değerine {1} {2} ekledi"
+		"it"			"ha aggiunto {1} {2} a \"{3}\""
+		"ua"			"додав(ла) {1} {2} до \"{3}\""
+		"cze"			"přidal(a) {1} {2} k \"{3}\""
 	}
 
 	"Activity Limit Deducted"
@@ -226,6 +311,11 @@
 		"es"			"restó {1} {2} de \"{3}\""
 		"de"			"hat {1} {2} von \"{3}\" abgezogen"
 		"pt"			"subtraiu {1} {2} de \"{3}\""
+		"pl"			"odjął(-ęła) {1} {2} od \"{3}\""
+		"tr"			"\"{3}\" değerinden {1} {2} düştü"
+		"it"			"ha sottratto {1} {2} da \"{3}\""
+		"ua"			"відняв(ла) {1} {2} від \"{3}\""
+		"cze"			"odečetl(a) {1} {2} z \"{3}\""
 	}
 
 	"Unit Round"
@@ -237,6 +327,12 @@
 		"es"			"ronda"
 		"de"			"Runde"
 		"pt"			"rodada"
+		"pl"			"runda"
+		"tr"			"tur"
+		"it"			"round"
+		"ua"			"раунд"
+		"zho"			"回合"
+		"cze"			"kolo"
 	}
 
 	"Unit Rounds"
@@ -248,6 +344,12 @@
 		"es"			"rondas"
 		"de"			"Runden"
 		"pt"			"rodadas"
+		"pl"			"rund(y)"
+		"tr"			"tur"
+		"it"			"round"
+		"ua"			"раунд(ів)"
+		"zho"			"回合"
+		"cze"			"kol"
 	}
 
 	"Unit Frag"
@@ -259,6 +361,12 @@
 		"es"			"frag"
 		"de"			"Frag"
 		"pt"			"frag"
+		"pl"			"frag"
+		"tr"			"öldürme"
+		"it"			"frag"
+		"ua"			"фраг"
+		"zho"			"次擊殺"
+		"cze"			"frag"
 	}
 
 	"Unit Frags"
@@ -270,6 +378,12 @@
 		"es"			"frags"
 		"de"			"Frags"
 		"pt"			"frags"
+		"pl"			"fragi"
+		"tr"			"öldürme"
+		"it"			"frag"
+		"ua"			"фраг(ів)"
+		"zho"			"次擊殺"
+		"cze"			"fragů"
 	}
 
 	"Unit Win"
@@ -281,6 +395,12 @@
 		"es"			"victoria"
 		"de"			"Sieg"
 		"pt"			"vitória"
+		"pl"			"wygraną"
+		"tr"			"galibiyet"
+		"it"			"vittoria"
+		"ua"			"перемогу"
+		"zho"			"場勝利"
+		"cze"			"výhru"
 	}
 
 	"Unit Wins"
@@ -292,6 +412,12 @@
 		"es"			"victorias"
 		"de"			"Siege"
 		"pt"			"vitórias"
+		"pl"			"wygrane"
+		"tr"			"galibiyet"
+		"it"			"vittorie"
+		"ua"			"перемог(и)"
+		"zho"			"場勝利"
+		"cze"			"výhry"
 	}
 
 	"Unit Minute"
@@ -303,6 +429,12 @@
 		"es"			"minuto"
 		"de"			"Minute"
 		"pt"			"minuto"
+		"pl"			"minutę"
+		"tr"			"dakika"
+		"it"			"minuto"
+		"ua"			"хв."
+		"zho"			"分鐘"
+		"cze"			"minutu"
 	}
 
 	"Unit Minutes"
@@ -314,5 +446,11 @@
 		"es"			"minutos"
 		"de"			"Minuten"
 		"pt"			"minutos"
+		"pl"			"minut(y)"
+		"tr"			"dakika"
+		"it"			"minuti"
+		"ua"			"хв."
+		"zho"			"分鐘"
+		"cze"			"minut"
 	}
 }
